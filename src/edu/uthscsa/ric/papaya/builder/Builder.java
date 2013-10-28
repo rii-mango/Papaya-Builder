@@ -154,11 +154,11 @@ public class Builder implements FilenameFilter {
 				builder.writeFile(atlasJavaScriptFile, writeFile);
 			}
 
-			File concatFile = builder.concatenateFiles(JS_DIRS, ".js", writeFile);
+			writeFile = builder.concatenateFiles(JS_DIRS, ".js", writeFile);
 			File compressedFile = new File(outputDir, OUTPUT_JS_FILENAME);
 			System.out.println("Compressing JavaScript... ");
-			builder.compressJavaScript(concatFile, compressedFile, new YuiCompressorOptions());
-			concatFile.deleteOnExit();
+			builder.compressJavaScript(writeFile, compressedFile, new YuiCompressorOptions());
+			//writeFile.deleteOnExit();
 		} catch (IOException ex) {
 			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
 		}

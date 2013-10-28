@@ -7,7 +7,7 @@ A tool to build and customize Papaya.
 How to build the build tool
 -----
 Run the Ant script, `build.xml`, found in the root of the project.  This will output `papaya-builder.jar` to the `build` 
-folder.
+folder.  Copy `papaya-builder.jar` to the `lib` folder in the [Papaya project](https://github.com/rii-mango/Papaya).
 
 Usage
 -----

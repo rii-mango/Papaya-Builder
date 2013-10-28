@@ -1,0 +1,39 @@
+
+<project name="testPapayaBuilder" default="all">
+	
+	<property name="src.dir"     	location="src"/>
+    <property name="build.dir"   	location="build"/>
+    <property name="classes.dir" 	location="bin"/>
+    <property name="lib.dir" 		location="lib"/>   
+	<property name="resources.dir" 	location="resources"/>
+	<property name="deploy.dir" 	location="deploy"/>
+	<property name="papaya.dir" 	location="../Papaya"/>
+
+	
+	<target name="init">
+		<echo>Java version = ${java.version}</echo>	  
+		
+		<propertyfile  file="${papaya.dir}/build.properties">
+		  <entry  key="PAPAYA_VERSION_ID" default="0.0" />
+		  <entry  key="PAPAYA_BUILD_NUM" type="int" default="0" operation="+" />
+		</propertyfile>
+		<replaceregexp file="${papaya.dir}/build.properties" match="^#.*[\r\n]" replace="" />
+	</target>
+	
+	
+	
+	<target name="run" depends="init">
+		<java jar="${build.dir}/papaya-builder.jar" fork="true">
+			<arg value="-root" />
+			<arg value="${papaya.dir}" />
+			<arg value="-atlas" />
+			<arg value="-sample" />
+		</java>
+	</target>
+		
+	
+	
+	<target name="all" depends="run">
+		<echo>Done!</echo>
+	</target>
+</project>

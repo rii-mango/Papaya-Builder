@@ -29,7 +29,8 @@ default Talairach/MNI label atlas, leave the `<file>` field blank.
 
 -local
 -----
-To build for local usage, include the `-local` flag.  In this case, image data is Base64 encoded.
+To build for local usage, include the `-local` flag.  In this case, image data is encoded and embedded within the 
+JavaScript.
 
 -images
 -----

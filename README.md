@@ -31,14 +31,14 @@ default Talairach/MNI label atlas, leave the the `<file>` field blank.
 -----
 To build for local usage, include the `-local` flag.  In this case, image data is Base64 encoded.
 
-images
+-images
 -----
 Specify one or more image file paths.  These images will appear as File menu options (similar to the sample image).
 
-Root
+-root
 -----
 Point the builder to the root of the papaya folder.  Omiting this option will use the current working directory.
 
-Sample
+-sample
 -----
 Use this option to include a sample image.  An _Add Sample Image_ option will appear in the Papaya viewer File menu.

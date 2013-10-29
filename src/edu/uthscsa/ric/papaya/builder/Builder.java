@@ -21,6 +21,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import com.yahoo.platform.yui.compressor.CssCompressor;
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
@@ -32,6 +34,7 @@ public class Builder implements FilenameFilter {
 	private boolean useAtlas;
 	private boolean isLocal;
 	private boolean printHelp;
+	private boolean useImages;
 	private Options options;
 	private File projectDir;
 
@@ -40,6 +43,7 @@ public class Builder implements FilenameFilter {
 	public static final String ARG_HELP = "help";
 	public static final String ARG_ROOT = "root";
 	public static final String ARG_ATLAS = "atlas";
+	public static final String ARG_IMAGE = "images";
 	public static final String CLI_PROGRAM_NAME = "papaya-builder";
 	public static final String OUTPUT_DIR = "build";
 	public static final String OUTPUT_JS_FILENAME = "papaya.js";
@@ -49,12 +53,9 @@ public class Builder implements FilenameFilter {
 			"classes/volume/nifti/", "classes/viewer/", "classes/ui/", "classes/main.js" };
 	public static final String[] CSS_DIRS = { "css/" };
 	public static final String RESOURCE_HTML = "index.html";
-	public static final String SAMPLE_IMAGE_FILE_LOCAL = "classes/data/sample-image-local.js";
-	public static final String SAMPLE_IMAGE_FILE = "classes/data/sample-image.js";
-	public static final String SAMPLE_IMAGE_LOC = "data/sample_image.nii.gz";
-	public static final String SAMPLE_ATLAS_FILE_LOCAL = "classes/data/talairach-atlas-local.js";
-	public static final String SAMPLE_ATLAS_FILE = "classes/data/talairach-atlas.js";
-	public static final String SAMPLE_ATLAS_LOC = "data/Talairach-labels-1mm.nii.gz";
+	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
+	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
+	public static final String PAPAYA_LOADABLE_IMAGES = "papayaLoadableImages";
 
 
 
@@ -67,6 +68,7 @@ public class Builder implements FilenameFilter {
 		builder.setUseAtlas(cli.hasOption(ARG_ATLAS));
 		builder.setLocal(cli.hasOption(ARG_LOCAL));
 		builder.setPrintHelp(cli.hasOption(ARG_HELP));
+		builder.setUseImages(cli.hasOption(ARG_IMAGE));
 
 		// print help, if necessary
 		if (builder.isPrintHelp()) {
@@ -103,62 +105,97 @@ public class Builder implements FilenameFilter {
 		// compress JS
 		try {
 			File writeFile = builder.createTempFile();
+			JSONArray loadableImages = new JSONArray();
+
+			// write build properties
 			File buildPropFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
 			builder.writeFile(buildPropFile, writeFile);
 
+			// handle sample image
 			if (builder.isUseSample()) {
 				System.out.println("Including sample image...");
 
-				File sampleFile = null;
+				File sampleFile = new File(builder.projectDir + "/" + SAMPLE_IMAGE_NII_FILE);
+				String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(sampleFile.getName()));
 
 				if (builder.isLocal()) {
-					sampleFile = new File(builder.projectDir + "/" + SAMPLE_IMAGE_FILE_LOCAL);
+					loadableImages.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"encode\":\"" + filename + "\"}"));
+					String sampleEncoded = Utilities.encodeImageFile(sampleFile);
+					FileUtils.writeStringToFile(writeFile, "var " + filename + "= \"" + sampleEncoded + "\";", true);
 				} else {
-					sampleFile = new File(builder.projectDir + "/" + SAMPLE_IMAGE_FILE);
-					FileUtils.copyFile(new File(builder.projectDir + "/resources/" + SAMPLE_IMAGE_LOC), new File(outputDir + "/" + SAMPLE_IMAGE_LOC));
+					loadableImages
+							.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"url\":\"" + SAMPLE_IMAGE_NII_FILE + "\"}"));
+					FileUtils.copyFile(sampleFile, new File(outputDir + "/" + SAMPLE_IMAGE_NII_FILE));
 				}
-
-				builder.writeFile(sampleFile, writeFile);
 			}
 
+			// handle atlas
 			if (builder.isUseAtlas()) {
 				Atlas atlas = null;
-				File atlasJavaScriptFile = null;
 
 				try {
 					String atlasArg = cli.getOptionValue(ARG_ATLAS);
 
-					if (atlasArg != null) {
-						File atlasXmlFile = (new File(atlasArg)).getCanonicalFile();
-						System.out.println("Including atlas " + atlasXmlFile);
-						atlas = new Atlas(atlasXmlFile);
-						atlasJavaScriptFile = atlas.createAtlas(builder.isLocal());
-
-						if (!builder.isLocal()) {
-							File atlasImageFile = atlas.getImageFile();
-							FileUtils.copyFile(atlasImageFile, new File(outputDir + "/data/" + atlasImageFile.getName()));
-						}
-					} else { // use default Talairach atlas
-						if (builder.isLocal()) {
-							atlasJavaScriptFile = new File(builder.projectDir + "/" + SAMPLE_ATLAS_FILE_LOCAL);
-						} else {
-							atlasJavaScriptFile = new File(builder.projectDir + "/" + SAMPLE_ATLAS_FILE);
-							FileUtils.copyFile(new File(builder.projectDir + "/resources/" + SAMPLE_ATLAS_LOC), new File(outputDir + "/" + SAMPLE_ATLAS_LOC));
-						}
-
+					if (atlasArg == null) {
+						atlasArg = SAMPLE_DEFAULT_ATLAS_FILE;
 					}
+
+					File atlasXmlFile = (new File(atlasArg)).getCanonicalFile();
+					System.out.println("Including atlas " + atlasXmlFile);
+					atlas = new Atlas(atlasXmlFile);
+					File atlasJavaScriptFile = atlas.createAtlas(builder.isLocal());
+
+					if (builder.isLocal()) {
+						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"encode\":\""
+								+ atlas.getImageFileNewName() + "\",\"hide\":true}"));
+					} else {
+						File atlasImageFile = atlas.getImageFile();
+						String atlasPath = "data/" + atlasImageFile.getName();
+
+						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath
+								+ "\",\"hide\":true}"));
+						FileUtils.copyFile(atlasImageFile, new File(outputDir + "/" + atlasPath));
+					}
+
+					builder.writeFile(atlasJavaScriptFile, writeFile);
 				} catch (IOException ex) {
 					System.err.println("Problem finding atlas file.  Reason: " + ex.getMessage());
 				}
-
-				builder.writeFile(atlasJavaScriptFile, writeFile);
 			}
+
+			if (builder.isUseImages()) {
+				String[] imageArgs = cli.getOptionValues(ARG_IMAGE);
+
+				if (imageArgs != null) {
+					for (int ctr = 0; ctr < imageArgs.length; ctr++) {
+						File file = new File(imageArgs[ctr]);
+						System.out.println("Including image " + file);
+
+						String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
+
+						if (builder.isLocal()) {
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
+									+ filename + "\",\"encode\":\"" + filename + "\"}"));
+							String sampleEncoded = Utilities.encodeImageFile(file);
+							FileUtils.writeStringToFile(writeFile, "var " + filename + "= \"" + sampleEncoded + "\";", true);
+						} else {
+							String filePath = "data/" + file.getName();
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
+									+ filename + "\",\"url\":\"" + filePath + "\"}"));
+							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
+						}
+					}
+				}
+			}
+
+			// write image refs
+			FileUtils.writeStringToFile(writeFile, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";", true);
 
 			writeFile = builder.concatenateFiles(JS_DIRS, ".js", writeFile);
 			File compressedFile = new File(outputDir, OUTPUT_JS_FILENAME);
 			System.out.println("Compressing JavaScript... ");
 			builder.compressJavaScript(writeFile, compressedFile, new YuiCompressorOptions());
-			//writeFile.deleteOnExit();
+			writeFile.deleteOnExit();
 		} catch (IOException ex) {
 			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
 		}
@@ -193,6 +230,7 @@ public class Builder implements FilenameFilter {
 		options.addOption(new Option(ARG_SAMPLE, "include sample image"));
 		options.addOption(new Option(ARG_LOCAL, "build for local usage"));
 		options.addOption(new Option(ARG_HELP, "print this message"));
+		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
 		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
 		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
 
@@ -367,5 +405,17 @@ public class Builder implements FilenameFilter {
 
 	public void setUseAtlas(boolean useAtlas) {
 		this.useAtlas = useAtlas;
+	}
+
+
+
+	public boolean isUseImages() {
+		return useImages;
+	}
+
+
+
+	public void setUseImages(boolean useImages) {
+		this.useImages = useImages;
 	}
 }

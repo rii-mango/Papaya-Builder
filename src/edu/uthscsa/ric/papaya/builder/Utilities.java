@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 
 
@@ -47,5 +48,32 @@ public class Utilities {
 		}
 
 		FileUtils.writeStringToFile(file, sb.toString());
+	}
+
+
+
+	public static String replaceNonAlphanumericCharacters(String str) {
+		return str.replaceAll("[^A-Za-z0-9]", "_");
+	}
+
+
+
+	public static String removeNiftiExtensions(String str) {
+		if (str.endsWith(".gz")) {
+			str = str.substring(0, str.indexOf(".gz"));
+		}
+
+		if (str.endsWith(".nii")) {
+			str = str.substring(0, str.indexOf(".nii"));
+		}
+
+		return str;
+	}
+
+
+
+	public static String encodeImageFile(File imageFile) throws IOException {
+		Base64 base64 = new Base64();
+		return new String(base64.encode(FileUtils.readFileToByteArray(imageFile)), "UTF-8");
 	}
 }

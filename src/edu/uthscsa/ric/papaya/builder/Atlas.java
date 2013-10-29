@@ -4,7 +4,6 @@ package edu.uthscsa.ric.papaya.builder;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,15 +14,13 @@ public class Atlas {
 
 	private final File xmlFile;
 	private File imageFile;
+	private String imageFileNewName;
 	private JSONObject json;
 	private String data;
 	private boolean local;
 
 	public static final String HEADER = "\"use strict\";var papaya = papaya || {};papaya.data = papaya.data || {};papaya.data.Atlas = papaya.data.Atlas || {};";
-	public static final String NAME = "papaya.data.Atlas.name";
 	public static final String LABELS = "papaya.data.Atlas.labels";
-	public static final String DATA = "papaya.data.Atlas.data";
-	public static final String IMAGE = "papaya.data.Atlas.image";
 
 
 
@@ -40,7 +37,7 @@ public class Atlas {
 		findImageFile();
 
 		if (local) {
-			encodeImageFile();
+			data = Utilities.encodeImageFile(imageFile);
 		}
 
 		return writeAtlasFile();
@@ -59,6 +56,7 @@ public class Atlas {
 	private void findImageFile() {
 		String parentDir = xmlFile.getParent();
 
+		// find the image file
 		JSONArray images = json.getJSONObject("atlas").getJSONObject("header").optJSONArray("images");
 		if (images != null) {
 			int numImages = images.length();
@@ -78,13 +76,15 @@ public class Atlas {
 			String file = json.getJSONObject("atlas").getJSONObject("header").getJSONObject("images").getString("summaryimagefile");
 			imageFile = new File(parentDir + "/" + file + ".nii.gz");
 		}
-	}
 
+		// remove old "images" object
+		json.getJSONObject("atlas").getJSONObject("header").remove("images");
 
+		// this will be the loadablePapayaImages ref
+		imageFileNewName = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(imageFile.getName()));
 
-	private void encodeImageFile() throws IOException {
-		Base64 base64 = new Base64();
-		data = new String(base64.encode(FileUtils.readFileToByteArray(imageFile)), "UTF-8");
+		// recreate the "images" object
+		json.getJSONObject("atlas").getJSONObject("header").put("images", new JSONObject("{\"summaryimagefile\":\"" + imageFileNewName + "\"}"));
 	}
 
 
@@ -93,12 +93,10 @@ public class Atlas {
 		File file = File.createTempFile("atlas", null);
 
 		if (local) {
-			FileUtils.writeStringToFile(file, HEADER + NAME + "=\"" + imageFile.getName() + "\";" + LABELS + "=" + json.toString() + ";" + DATA + "=\"" + data
-					+ "\";");
-		} else {
-			FileUtils.writeStringToFile(file, HEADER + NAME + "=\"" + imageFile.getName() + "\";" + LABELS + "=" + json.toString() + ";" + IMAGE + "=\"data/"
-					+ imageFile.getName() + "\";");
+			FileUtils.writeStringToFile(file, "var " + imageFileNewName + "=\"" + data + "\";\n", true);
 		}
+
+		FileUtils.writeStringToFile(file, HEADER + LABELS + "=" + json.toString() + ";\n", true);
 
 		return file;
 	}
@@ -107,5 +105,11 @@ public class Atlas {
 
 	public File getImageFile() {
 		return imageFile;
+	}
+
+
+
+	public String getImageFileNewName() {
+		return imageFileNewName;
 	}
 }

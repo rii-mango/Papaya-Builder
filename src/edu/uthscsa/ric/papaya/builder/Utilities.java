@@ -37,7 +37,7 @@ public class Utilities {
 
 
 
-	public static void writeResourcetoFile(String resourceName, File file) throws IOException {
+	public static String getResourceAsString(String resourceName) throws IOException {
 		InputStream is = Utilities.class.getResourceAsStream(resourceName);
 		BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 		StringBuilder sb = new StringBuilder();
@@ -47,7 +47,7 @@ public class Utilities {
 			sb.append(line + "\n");
 		}
 
-		FileUtils.writeStringToFile(file, sb.toString());
+		return sb.toString();
 	}
 
 
@@ -75,5 +75,18 @@ public class Utilities {
 	public static String encodeImageFile(File imageFile) throws IOException {
 		Base64 base64 = new Base64();
 		return new String(base64.encode(FileUtils.readFileToByteArray(imageFile)), "UTF-8");
+	}
+
+
+
+	public static String findQuotedString(String str) {
+		int firstIndex = str.indexOf("\"");
+		int secondIndex = str.lastIndexOf("\"");
+
+		if ((firstIndex != -1) && (secondIndex != -1) && (firstIndex != secondIndex)) {
+			return str.substring(firstIndex + 1, secondIndex);
+		}
+
+		return null;
 	}
 }

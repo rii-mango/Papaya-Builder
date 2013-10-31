@@ -10,6 +10,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -37,6 +39,7 @@ public class Builder implements FilenameFilter {
 	private boolean useImages;
 	private Options options;
 	private File projectDir;
+	private String buildVersion, buildNumber;
 
 	public static final String ARG_SAMPLE = "sample";
 	public static final String ARG_LOCAL = "local";
@@ -49,6 +52,8 @@ public class Builder implements FilenameFilter {
 	public static final String OUTPUT_JS_FILENAME = "papaya.js";
 	public static final String OUTPUT_CSS_FILENAME = "papaya.css";
 	public static final String BUILD_PROP_FILE = "build.properties";
+	public static final String BUILD_PROP_PAPAYA_VERSION_ID = "PAPAYA_VERSION_ID";
+	public static final String BUILD_PROP_PAPAYA_BUILD_NUM = "PAPAYA_BUILD_NUM";
 	public static final String[] JS_DIRS = { "jquery/jquery.js", "classes/constants.js", "classes/utilities/", "classes/core/", "classes/volume/",
 			"classes/volume/nifti/", "classes/viewer/", "classes/ui/", "classes/main.js" };
 	public static final String[] CSS_DIRS = { "css/" };
@@ -109,6 +114,7 @@ public class Builder implements FilenameFilter {
 
 			// write build properties
 			File buildPropFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
+			builder.readBuildProperties(buildPropFile);
 			builder.writeFile(buildPropFile, writeFile);
 
 			// handle sample image
@@ -342,7 +348,13 @@ public class Builder implements FilenameFilter {
 
 
 	private void writeHtml(File outputDir) throws IOException {
-		Utilities.writeResourcetoFile(RESOURCE_HTML, new File(outputDir, RESOURCE_HTML));
+		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
+
+		String str = Utilities.getResourceAsString(RESOURCE_HTML);
+		str = str.replace("papaya.js", "papaya.js?version=" + buildVersion + "&build=" + buildNumber);
+		str = str.replace("papaya.css", "papaya.css?version=" + buildVersion + "&build=" + buildNumber);
+
+		FileUtils.writeStringToFile(resourceOutputFile, str);
 	}
 
 
@@ -417,5 +429,22 @@ public class Builder implements FilenameFilter {
 
 	public void setUseImages(boolean useImages) {
 		this.useImages = useImages;
+	}
+
+
+
+	// It's not a real Java properties file, so we need to handle reading it ourselves
+	private void readBuildProperties(File file) throws IOException {
+		List<String> lines = FileUtils.readLines(file);
+		Iterator<String> it = lines.iterator();
+
+		while (it.hasNext()) {
+			String line = it.next();
+			if (line.indexOf(BUILD_PROP_PAPAYA_VERSION_ID) != -1) {
+				buildVersion = Utilities.findQuotedString(line);
+			} else if (line.indexOf(BUILD_PROP_PAPAYA_BUILD_NUM) != -1) {
+				buildNumber = Utilities.findQuotedString(line);
+			}
+		}
 	}
 }

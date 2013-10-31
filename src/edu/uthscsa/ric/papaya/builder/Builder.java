@@ -39,7 +39,8 @@ public class Builder implements FilenameFilter {
 	private boolean useImages;
 	private Options options;
 	private File projectDir;
-	private String buildVersion, buildNumber;
+	private String buildVersion;
+	private int buildNumber;
 
 	public static final String ARG_SAMPLE = "sample";
 	public static final String ARG_LOCAL = "local";
@@ -107,15 +108,29 @@ public class Builder implements FilenameFilter {
 			System.out.println("Building for local usage...");
 		}
 
+		File writeFile = null;
+
+		try {
+			writeFile = builder.createTempFile();
+		} catch (IOException ex) {
+			System.err.println("Problem creating temp write file.  Reason: " + ex.getMessage());
+		}
+
+		// handle build properties
+		try {
+			File buildFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
+
+			builder.readBuildProperties(buildFile);
+			builder.buildNumber++; // increment build number
+			builder.writeBuildProperties(writeFile, true);
+			builder.writeBuildProperties(buildFile, false);
+		} catch (IOException ex) {
+			System.err.println("Problem handling build properties.  Reason: " + ex.getMessage());
+		}
+
 		// compress JS
 		try {
-			File writeFile = builder.createTempFile();
 			JSONArray loadableImages = new JSONArray();
-
-			// write build properties
-			File buildPropFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
-			builder.readBuildProperties(buildPropFile);
-			builder.writeFile(buildPropFile, writeFile);
 
 			// handle sample image
 			if (builder.isUseSample()) {
@@ -359,6 +374,13 @@ public class Builder implements FilenameFilter {
 
 
 
+	private void writeBuildProperties(File file, boolean append) throws IOException {
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + buildVersion + "\";\n", append);
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + buildNumber + "\";\n", true);
+	}
+
+
+
 	private void printHelp() {
 		HelpFormatter formatter = new HelpFormatter();
 		formatter.printHelp(CLI_PROGRAM_NAME + " [options]", options);
@@ -443,7 +465,7 @@ public class Builder implements FilenameFilter {
 			if (line.indexOf(BUILD_PROP_PAPAYA_VERSION_ID) != -1) {
 				buildVersion = Utilities.findQuotedString(line);
 			} else if (line.indexOf(BUILD_PROP_PAPAYA_BUILD_NUM) != -1) {
-				buildNumber = Utilities.findQuotedString(line);
+				buildNumber = Integer.parseInt(Utilities.findQuotedString(line));
 			}
 		}
 	}

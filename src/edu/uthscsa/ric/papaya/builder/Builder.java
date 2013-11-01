@@ -163,7 +163,10 @@ public class Builder implements FilenameFilter {
 
 					File atlasXmlFile = (new File(atlasArg)).getCanonicalFile();
 					System.out.println("Including atlas " + atlasXmlFile);
+
 					atlas = new Atlas(atlasXmlFile);
+					System.out.println("Using atlas image file " + atlas.getImageFile());
+
 					File atlasJavaScriptFile = atlas.createAtlas(builder.isLocal());
 
 					if (builder.isLocal()) {

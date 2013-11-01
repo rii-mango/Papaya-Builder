@@ -165,9 +165,8 @@ public class Builder implements FilenameFilter {
 					System.out.println("Including atlas " + atlasXmlFile);
 
 					atlas = new Atlas(atlasXmlFile);
-					System.out.println("Using atlas image file " + atlas.getImageFile());
-
 					File atlasJavaScriptFile = atlas.createAtlas(builder.isLocal());
+					System.out.println("Using atlas image file " + atlas.getImageFile());
 
 					if (builder.isLocal()) {
 						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"encode\":\""

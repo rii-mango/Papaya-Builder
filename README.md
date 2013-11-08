@@ -22,9 +22,8 @@ usage: papaya-builder [options]
 ```
 
 ###-atlas
-Atlas must follow the [FSL Atlas Specification](http://ric.uthscsa.edu/mango/imango_guide_atlas.html).  When building, 
-provide the path to the atlas XML file.  Only non-probabilistic, label-based atlases are currently supported.  To use the 
-default Talairach/MNI label atlas, leave the `<file>` field blank.
+Atlas must follow the [FSL Atlas Specification](http://ric.uthscsa.edu/mango/atlas_spec.html).  When building, 
+provide the path to the atlas XML file. To use the default Talairach/MNI label atlas, leave the `<file>` field blank.
 
 ###-local
 To build for local usage, include the `-local` flag.  In this case, image data is encoded and embedded within the 

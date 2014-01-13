@@ -37,6 +37,7 @@ public class Builder implements FilenameFilter {
 	private boolean isLocal;
 	private boolean printHelp;
 	private boolean useImages;
+	private boolean singleFile;
 	private Options options;
 	private File projectDir;
 	private String buildVersion;
@@ -48,6 +49,7 @@ public class Builder implements FilenameFilter {
 	public static final String ARG_ROOT = "root";
 	public static final String ARG_ATLAS = "atlas";
 	public static final String ARG_IMAGE = "images";
+	public static final String ARG_SINGLE = "singlefile";
 	public static final String CLI_PROGRAM_NAME = "papaya-builder";
 	public static final String OUTPUT_DIR = "build";
 	public static final String OUTPUT_JS_FILENAME = "papaya.js";
@@ -55,6 +57,8 @@ public class Builder implements FilenameFilter {
 	public static final String BUILD_PROP_FILE = "build.properties";
 	public static final String BUILD_PROP_PAPAYA_VERSION_ID = "PAPAYA_VERSION_ID";
 	public static final String BUILD_PROP_PAPAYA_BUILD_NUM = "PAPAYA_BUILD_NUM";
+	public static final String CSS_BLOCK = "<!-- CSS GOES HERE -->";
+	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
 	public static final String[] JS_DIRS = { "jquery/jquery.js", "classes/constants.js", "classes/utilities/", "classes/core/", "classes/volume/",
 			"classes/volume/nifti/", "classes/viewer/", "classes/ui/", "classes/main.js" };
 	public static final String[] CSS_DIRS = { "css/" };
@@ -75,6 +79,7 @@ public class Builder implements FilenameFilter {
 		builder.setLocal(cli.hasOption(ARG_LOCAL));
 		builder.setPrintHelp(cli.hasOption(ARG_HELP));
 		builder.setUseImages(cli.hasOption(ARG_IMAGE));
+		builder.setSingleFile(cli.hasOption(ARG_SINGLE));
 
 		// print help, if necessary
 		if (builder.isPrintHelp()) {
@@ -129,6 +134,8 @@ public class Builder implements FilenameFilter {
 		}
 
 		// compress JS
+		File compressedFileJs = new File(outputDir, OUTPUT_JS_FILENAME);
+
 		try {
 			JSONArray loadableImages = new JSONArray();
 
@@ -215,29 +222,33 @@ public class Builder implements FilenameFilter {
 			FileUtils.writeStringToFile(writeFile, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";", true);
 
 			writeFile = builder.concatenateFiles(JS_DIRS, ".js", writeFile);
-			File compressedFile = new File(outputDir, OUTPUT_JS_FILENAME);
 			System.out.println("Compressing JavaScript... ");
-			builder.compressJavaScript(writeFile, compressedFile, new YuiCompressorOptions());
+			builder.compressJavaScript(writeFile, compressedFileJs, new YuiCompressorOptions());
 			writeFile.deleteOnExit();
 		} catch (IOException ex) {
 			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
 		}
 
 		// compress CSS
+		File compressedFileCss = new File(outputDir, OUTPUT_CSS_FILENAME);
+
 		try {
 			File concatFile = builder.concatenateFiles(CSS_DIRS, ".css", null);
-			File compressedFile = new File(outputDir, OUTPUT_CSS_FILENAME);
 			System.out.println("Compressing CSS... ");
-			builder.compressCSS(concatFile, compressedFile, new YuiCompressorOptions());
+			builder.compressCSS(concatFile, compressedFileCss, new YuiCompressorOptions());
 			concatFile.deleteOnExit();
 		} catch (IOException ex) {
-			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
+			System.err.println("Problem concatenating CSS.  Reason: " + ex.getMessage());
 		}
 
 		// write HTML
 		try {
 			System.out.println("Writing HTML... ");
-			builder.writeHtml(outputDir);
+			if (builder.singleFile) {
+				builder.writeHtml(outputDir, compressedFileJs, compressedFileCss);
+			} else {
+				builder.writeHtml(outputDir);
+			}
 		} catch (IOException ex) {
 			System.err.println("Problem writing HTML.  Reason: " + ex.getMessage());
 		}
@@ -252,6 +263,7 @@ public class Builder implements FilenameFilter {
 		options = new Options();
 		options.addOption(new Option(ARG_SAMPLE, "include sample image"));
 		options.addOption(new Option(ARG_LOCAL, "build for local usage"));
+		options.addOption(new Option(ARG_SINGLE, "output a single HTML file"));
 		options.addOption(new Option(ARG_HELP, "print this message"));
 		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
 		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
@@ -368,10 +380,59 @@ public class Builder implements FilenameFilter {
 		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String str = Utilities.getResourceAsString(RESOURCE_HTML);
-		str = str.replace("papaya.js", "papaya.js?version=" + buildVersion + "&build=" + buildNumber);
-		str = str.replace("papaya.css", "papaya.css?version=" + buildVersion + "&build=" + buildNumber);
+		str = replaceHtmlCssBlock(str, null);
+		str = replaceHtmlJsBlock(str, null);
 
 		FileUtils.writeStringToFile(resourceOutputFile, str);
+	}
+
+
+
+	private void writeHtml(File outputDir, File jsFile, File cssFile) throws IOException {
+		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
+
+		String html = Utilities.getResourceAsString(RESOURCE_HTML);
+		String js = FileUtils.readFileToString(jsFile);
+		String css = FileUtils.readFileToString(cssFile);
+
+		html = replaceHtmlCssBlock(html, css);
+		html = replaceHtmlJsBlock(html, js);
+
+		FileUtils.writeStringToFile(resourceOutputFile, html);
+
+		jsFile.delete();
+		jsFile.deleteOnExit();
+
+		cssFile.delete();
+		cssFile.deleteOnExit();
+	}
+
+
+
+	private String replaceHtmlCssBlock(String html, String cssBlock) {
+		String css = null;
+
+		if (cssBlock != null) {
+			css = "<style type=\"text/css\">\n" + cssBlock + "\n</style>\n";
+		} else {
+			css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + "papaya.css?version=" + buildVersion + "&build=" + buildNumber + "\" />";
+		}
+
+		return html.replace(CSS_BLOCK, css);
+	}
+
+
+
+	private String replaceHtmlJsBlock(String html, String jsBlock) {
+		String js = null;
+
+		if (jsBlock != null) {
+			js = "<script type=\"text/javascript\">\n" + jsBlock + "\n</script>\n";
+		} else {
+			js = "<script type=\"text/javascript\" src=\"" + "papaya.js?version=" + buildVersion + "&build=" + buildNumber + "\"></script>";
+		}
+
+		return html.replace(JS_BLOCK, js);
 	}
 
 
@@ -470,5 +531,17 @@ public class Builder implements FilenameFilter {
 				buildNumber = Integer.parseInt(Utilities.findQuotedString(line));
 			}
 		}
+	}
+
+
+
+	public boolean isSingleFile() {
+		return singleFile;
+	}
+
+
+
+	public void setSingleFile(boolean singleFile) {
+		this.singleFile = singleFile;
 	}
 }

@@ -29,6 +29,9 @@ provide the path to the atlas XML file. To use the default Talairach/MNI label a
 To build for local usage, include the `-local` flag.  In this case, image data is encoded and embedded within the 
 JavaScript.
 
+###-singlefile
+Outputs a single HTML file: collapses all HTML, CSS, JavaScript, and image data (if local) into one file.
+
 ###-images
 Specify one or more image file paths.  These images will appear as File menu options (similar to the sample image).
 

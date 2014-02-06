@@ -63,8 +63,8 @@ public class Builder implements FilenameFilter {
 			"classes/volume/nifti/", "classes/viewer/", "classes/ui/", "classes/main.js" };
 	public static final String[] CSS_DIRS = { "css/" };
 	public static final String RESOURCE_HTML = "index.html";
-	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
-	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
+	public static final String SAMPLE_IMAGE_NII_FILE = "tests/data/sample_image.nii.gz";
+	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "tests/data/Talairach.xml";
 	public static final String PAPAYA_LOADABLE_IMAGES = "papayaLoadableImages";
 
 

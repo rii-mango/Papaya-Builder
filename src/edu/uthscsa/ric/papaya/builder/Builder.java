@@ -4,12 +4,12 @@ package edu.uthscsa.ric.papaya.builder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -30,7 +30,7 @@ import com.yahoo.platform.yui.compressor.CssCompressor;
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
 
 
-public class Builder implements FilenameFilter {
+public class Builder {
 
 	private boolean useSample;
 	private boolean useAtlas;
@@ -59,9 +59,8 @@ public class Builder implements FilenameFilter {
 	public static final String BUILD_PROP_PAPAYA_BUILD_NUM = "PAPAYA_BUILD_NUM";
 	public static final String CSS_BLOCK = "<!-- CSS GOES HERE -->";
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
-	public static final String[] JS_DIRS = { "jquery/jquery.js", "classes/constants.js", "classes/utilities/", "classes/core/", "classes/volume/",
-			"classes/volume/nifti/", "classes/viewer/", "classes/ui/", "classes/main.js" };
-	public static final String[] CSS_DIRS = { "css/", "css/ui", "css/utilities", "css/viewer" };
+	public static final String[] JS_DIRS = { "lib", "src/js" };
+	public static final String[] CSS_DIRS = { "src/css" };
 	public static final String RESOURCE_HTML = "index.html";
 	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
@@ -221,7 +220,7 @@ public class Builder implements FilenameFilter {
 			// write image refs
 			FileUtils.writeStringToFile(writeFile, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";", true);
 
-			writeFile = builder.concatenateFiles(JS_DIRS, ".js", writeFile);
+			writeFile = builder.concatenateFiles(JS_DIRS, "js", writeFile);
 			System.out.println("Compressing JavaScript... ");
 			builder.compressJavaScript(writeFile, compressedFileJs, new YuiCompressorOptions());
 			writeFile.deleteOnExit();
@@ -233,7 +232,7 @@ public class Builder implements FilenameFilter {
 		File compressedFileCss = new File(outputDir, OUTPUT_CSS_FILENAME);
 
 		try {
-			File concatFile = builder.concatenateFiles(CSS_DIRS, ".css", null);
+			File concatFile = builder.concatenateFiles(CSS_DIRS, "css", null);
 			System.out.println("Compressing CSS... ");
 			builder.compressCSS(concatFile, compressedFileCss, new YuiCompressorOptions());
 			concatFile.deleteOnExit();
@@ -295,14 +294,12 @@ public class Builder implements FilenameFilter {
 
 		for (int ctr = 0; ctr < dirs.length; ctr++) {
 			File path = new File(projectDir + "/" + dirs[ctr]);
+			Collection<File> files = FileUtils.listFiles(path, new String[] { ext }, true);
 
-			if (dirs[ctr].endsWith(ext)) {
-				concat += FileUtils.readFileToString(path) + "\n";
-			} else {
-				File[] files = path.listFiles(this);
-				for (int ctrF = 0; ctrF < files.length; ctrF++) {
-					concat += FileUtils.readFileToString(files[ctrF]) + "\n";
-				}
+			Iterator<File> it = files.iterator();
+			while (it.hasNext()) {
+				File file = it.next();
+				concat += FileUtils.readFileToString(file) + "\n";
 			}
 		}
 
@@ -471,13 +468,6 @@ public class Builder implements FilenameFilter {
 
 	public void setPrintHelp(boolean printHelp) {
 		this.printHelp = printHelp;
-	}
-
-
-
-	@Override
-	public boolean accept(File dir, String name) {
-		return (name.endsWith(".js") || name.endsWith(".css"));
 	}
 
 

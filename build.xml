@@ -1,12 +1,11 @@
 
-<project name="buildPapayaBuilder" default="all">
+<project name="build" default="all">
 	
 	<property name="src.dir"     	location="src"/>
     <property name="build.dir"   	location="build"/>
     <property name="classes.dir" 	location="bin"/>
     <property name="lib.dir" 		location="lib"/>   
 	<property name="resources.dir" 	location="resources"/>
-	<property name="deploy.dir" 	location="deploy"/>
 	
 	<fileset dir="${lib.dir}" id="dependencies" />
 	
@@ -16,9 +15,9 @@
 	
 	
 	<target name="init">
-		<echo>Java version = ${java.version}</echo>	    	
+		<echo>Java version = ${java.version}</echo>
+		<echo>Ant version = ${ant.version}</echo>   
 	</target>
-	
 	
 	
 	<target name="clean" depends="init">
@@ -29,7 +28,6 @@
 	</target>
 		
 	
-	
 	<target name="compile" depends="clean">
 		<path id="classpath">
 			<fileset refid="dependencies" />
@@ -39,7 +37,6 @@
 			<classpath refid="classpath"/>
 		</javac>
 	</target>
-	
 	
 		
 	<target name="jar" depends="compile">	
@@ -59,4 +56,5 @@
 	<target name="all" depends="jar">
 		<echo>Done!</echo>
 	</target>
+	
 </project>

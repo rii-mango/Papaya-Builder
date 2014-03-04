@@ -61,7 +61,7 @@ public class Builder implements FilenameFilter {
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
 	public static final String[] JS_DIRS = { "jquery/jquery.js", "classes/constants.js", "classes/utilities/", "classes/core/", "classes/volume/",
 			"classes/volume/nifti/", "classes/viewer/", "classes/ui/", "classes/main.js" };
-	public static final String[] CSS_DIRS = { "css/" };
+	public static final String[] CSS_DIRS = { "css/", "css/ui", "css/utilities", "css/viewer" };
 	public static final String RESOURCE_HTML = "index.html";
 	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";

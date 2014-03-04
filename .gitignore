@@ -2,3 +2,4 @@
 /build
 test.xml
 deploy.xml
+.DS_Store

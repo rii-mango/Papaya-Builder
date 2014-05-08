@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -59,8 +58,18 @@ public class Builder {
 	public static final String BUILD_PROP_PAPAYA_BUILD_NUM = "PAPAYA_BUILD_NUM";
 	public static final String CSS_BLOCK = "<!-- CSS GOES HERE -->";
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
-	public static final String[] JS_DIRS = { "lib", "src/js" };
-	public static final String[] CSS_DIRS = { "src/css" };
+	public static final String[] JS_FILES = { "lib/jquery.js", "src/js/constants.js", "src/js/utilities/base64-binary.js", "src/js/utilities/browser.js",
+			"src/js/utilities/gunzip.js", "src/js/utilities/numerics.js", "src/js/utilities/platform.js", "src/js/utilities/utilities.js",
+			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
+			"src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js",
+			"src/js/volume/nifti/nifti.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
+			"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js",
+			"src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js", "src/js/ui/menuitemslider.js",
+			"src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js", "src/js/viewer/display.js",
+			"src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js", "src/js/viewer/viewer.js", "src/js/main.js",
+			"src/js/license.js" };
+	public static final String[] CSS_FILES = { "src/css/base.css", "src/css/ui/toolbar.css", "src/css/ui/menu.css", "src/css/ui/dialog.css",
+			"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
 	public static final String RESOURCE_HTML = "index.html";
 	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
@@ -220,7 +229,7 @@ public class Builder {
 			// write image refs
 			FileUtils.writeStringToFile(writeFile, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";", true);
 
-			writeFile = builder.concatenateFiles(JS_DIRS, "js", writeFile);
+			writeFile = builder.concatenateFiles(JS_FILES, "js", writeFile);
 			System.out.println("Compressing JavaScript... ");
 			builder.compressJavaScript(writeFile, compressedFileJs, new YuiCompressorOptions());
 			writeFile.deleteOnExit();
@@ -232,7 +241,7 @@ public class Builder {
 		File compressedFileCss = new File(outputDir, OUTPUT_CSS_FILENAME);
 
 		try {
-			File concatFile = builder.concatenateFiles(CSS_DIRS, "css", null);
+			File concatFile = builder.concatenateFiles(CSS_FILES, "css", null);
 			System.out.println("Compressing CSS... ");
 			builder.compressCSS(concatFile, compressedFileCss, new YuiCompressorOptions());
 			concatFile.deleteOnExit();
@@ -289,18 +298,12 @@ public class Builder {
 
 
 
-	private File concatenateFiles(String[] dirs, String ext, File writeFile) throws IOException {
+	private File concatenateFiles(String[] files, String ext, File writeFile) throws IOException {
 		String concat = "";
 
-		for (int ctr = 0; ctr < dirs.length; ctr++) {
-			File path = new File(projectDir + "/" + dirs[ctr]);
-			Collection<File> files = FileUtils.listFiles(path, new String[] { ext }, true);
-
-			Iterator<File> it = files.iterator();
-			while (it.hasNext()) {
-				File file = it.next();
-				concat += FileUtils.readFileToString(file) + "\n";
-			}
+		for (int ctr = 0; ctr < files.length; ctr++) {
+			File file = new File(projectDir + "/" + files[ctr]);
+			concat += FileUtils.readFileToString(file) + "\n";
 		}
 
 		if (writeFile == null) {

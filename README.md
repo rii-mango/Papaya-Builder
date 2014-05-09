@@ -1,7 +1,7 @@
 Papaya-Builder
 ==============
 
-A tool to build and customize Papaya.  
+A tool to build and customize Papaya.  The latest build of Papaya-Builder is located in the Papaya project at libs/papaya-builder.jar.
 
 
 How to build the build tool

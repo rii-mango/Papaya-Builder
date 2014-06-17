@@ -3,12 +3,14 @@ package edu.uthscsa.ric.papaya.builder;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 
 public class Utilities {
@@ -75,6 +77,15 @@ public class Utilities {
 	public static String encodeImageFile(File imageFile) throws IOException {
 		Base64 base64 = new Base64();
 		return new String(base64.encode(FileUtils.readFileToByteArray(imageFile)), "UTF-8");
+	}
+
+
+
+	public static void decodeImageFile(File encodedFile, File outputFile) throws IOException {
+		Base64 base64 = new Base64();
+		FileOutputStream output = new FileOutputStream(outputFile);
+		byte[] data = base64.decode(FileUtils.readFileToByteArray(encodedFile));
+		IOUtils.write(data, output);
 	}
 
 

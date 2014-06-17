@@ -121,33 +121,25 @@ public class Builder {
 			System.out.println("Building for local usage...");
 		}
 
-		File writeFile = null;
+		// write JS
+		File compressedFileJs = new File(outputDir, OUTPUT_JS_FILENAME);
 
-		try {
-			writeFile = builder.createTempFile();
-		} catch (IOException ex) {
-			System.err.println("Problem creating temp write file.  Reason: " + ex.getMessage());
-		}
-
-		// handle build properties
+		// build properties
 		try {
 			File buildFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
 
 			builder.readBuildProperties(buildFile);
 			builder.buildNumber++; // increment build number
-			builder.writeBuildProperties(writeFile, true);
+			builder.writeBuildProperties(compressedFileJs, true);
 			builder.writeBuildProperties(buildFile, false);
 		} catch (IOException ex) {
 			System.err.println("Problem handling build properties.  Reason: " + ex.getMessage());
 		}
 
-		// compress JS
-		File compressedFileJs = new File(outputDir, OUTPUT_JS_FILENAME);
-
 		try {
 			JSONArray loadableImages = new JSONArray();
 
-			// handle sample image
+			// sample image
 			if (builder.isUseSample()) {
 				System.out.println("Including sample image...");
 
@@ -157,7 +149,7 @@ public class Builder {
 				if (builder.isLocal()) {
 					loadableImages.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"encode\":\"" + filename + "\"}"));
 					String sampleEncoded = Utilities.encodeImageFile(sampleFile);
-					FileUtils.writeStringToFile(writeFile, "var " + filename + "= \"" + sampleEncoded + "\";", true);
+					FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", true);
 				} else {
 					loadableImages
 							.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"url\":\"" + SAMPLE_IMAGE_NII_FILE + "\"}"));
@@ -165,7 +157,7 @@ public class Builder {
 				}
 			}
 
-			// handle atlas
+			// atlas
 			if (builder.isUseAtlas()) {
 				Atlas atlas = null;
 
@@ -176,7 +168,8 @@ public class Builder {
 						atlasArg = SAMPLE_DEFAULT_ATLAS_FILE;
 					}
 
-					File atlasXmlFile = (new File(atlasArg)).getCanonicalFile();
+					File atlasXmlFile = new File(builder.projectDir + "/" + atlasArg);
+
 					System.out.println("Including atlas " + atlasXmlFile);
 
 					atlas = new Atlas(atlasXmlFile);
@@ -195,12 +188,13 @@ public class Builder {
 						FileUtils.copyFile(atlasImageFile, new File(outputDir + "/" + atlasPath));
 					}
 
-					builder.writeFile(atlasJavaScriptFile, writeFile);
+					builder.writeFile(atlasJavaScriptFile, compressedFileJs);
 				} catch (IOException ex) {
 					System.err.println("Problem finding atlas file.  Reason: " + ex.getMessage());
 				}
 			}
 
+			// additional images
 			if (builder.isUseImages()) {
 				String[] imageArgs = cli.getOptionValues(ARG_IMAGE);
 
@@ -215,7 +209,7 @@ public class Builder {
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
 									+ filename + "\",\"encode\":\"" + filename + "\"}"));
 							String sampleEncoded = Utilities.encodeImageFile(file);
-							FileUtils.writeStringToFile(writeFile, "var " + filename + "= \"" + sampleEncoded + "\";", true);
+							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", true);
 						} else {
 							String filePath = "data/" + file.getName();
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
@@ -226,13 +220,23 @@ public class Builder {
 				}
 			}
 
-			// write image refs
-			FileUtils.writeStringToFile(writeFile, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";", true);
+			File tempFileJs = null;
 
-			writeFile = builder.concatenateFiles(JS_FILES, "js", writeFile);
+			try {
+				tempFileJs = builder.createTempFile();
+			} catch (IOException ex) {
+				System.err.println("Problem creating temp write file.  Reason: " + ex.getMessage());
+			}
+
+			// write image refs
+			FileUtils.writeStringToFile(tempFileJs, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";", true);
+
+			// compress JS
+			tempFileJs = builder.concatenateFiles(JS_FILES, "js", tempFileJs);
 			System.out.println("Compressing JavaScript... ");
-			builder.compressJavaScript(writeFile, compressedFileJs, new YuiCompressorOptions());
-			writeFile.deleteOnExit();
+			FileUtils.writeStringToFile(compressedFileJs, "\n", true);
+			builder.compressJavaScript(tempFileJs, compressedFileJs, new YuiCompressorOptions());
+			tempFileJs.deleteOnExit();
 		} catch (IOException ex) {
 			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
 		}

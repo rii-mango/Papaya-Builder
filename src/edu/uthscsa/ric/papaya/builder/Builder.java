@@ -59,7 +59,7 @@ public class Builder {
 	public static final String CSS_BLOCK = "<!-- CSS GOES HERE -->";
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
 	public static final String[] JS_FILES = { "lib/jquery.js", "src/js/constants.js", "src/js/utilities/base64-binary.js", "src/js/utilities/browser.js",
-			"src/js/utilities/gunzip.js", "src/js/utilities/numerics.js", "src/js/utilities/platform.js", "src/js/utilities/utilities.js",
+			"src/js/utilities/numerics.js", "src/js/utilities/pako-inflate.js", "src/js/utilities/platform.js", "src/js/utilities/utilities.js",
 			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
 			"src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js",
 			"src/js/volume/nifti/nifti.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",

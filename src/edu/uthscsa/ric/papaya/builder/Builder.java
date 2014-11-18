@@ -37,6 +37,7 @@ public class Builder {
 	private boolean printHelp;
 	private boolean useImages;
 	private boolean singleFile;
+	private boolean useParamFile;
 	private Options options;
 	private File projectDir;
 	private String buildVersion;
@@ -49,6 +50,7 @@ public class Builder {
 	public static final String ARG_ATLAS = "atlas";
 	public static final String ARG_IMAGE = "images";
 	public static final String ARG_SINGLE = "singlefile";
+	public static final String ARG_PARAM_FILE = "parameterfile";
 	public static final String CLI_PROGRAM_NAME = "papaya-builder";
 	public static final String OUTPUT_DIR = "build";
 	public static final String OUTPUT_JS_FILENAME = "papaya.js";
@@ -58,6 +60,7 @@ public class Builder {
 	public static final String BUILD_PROP_PAPAYA_BUILD_NUM = "PAPAYA_BUILD_NUM";
 	public static final String CSS_BLOCK = "<!-- CSS GOES HERE -->";
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
+	public static final String PARAM_BLOCK = "<!-- PARAMS GO HERE -->";
 	public static final String[] JS_FILES = { "lib/jquery.js", "src/js/constants.js", "src/js/utilities/base64-binary.js", "src/js/utilities/browser.js",
 			"src/js/utilities/numerics.js", "src/js/utilities/pako-inflate.js", "src/js/utilities/platform.js", "src/js/utilities/utilities.js",
 			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
@@ -74,6 +77,7 @@ public class Builder {
 	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
 	public static final String PAPAYA_LOADABLE_IMAGES = "papayaLoadableImages";
+	public static final String DEFAULT_PARAMS = "var params = [];";
 
 
 
@@ -88,6 +92,7 @@ public class Builder {
 		builder.setPrintHelp(cli.hasOption(ARG_HELP));
 		builder.setUseImages(cli.hasOption(ARG_IMAGE));
 		builder.setSingleFile(cli.hasOption(ARG_SINGLE));
+		builder.setUseParamFile(cli.hasOption(ARG_PARAM_FILE));
 
 		// print help, if necessary
 		if (builder.isPrintHelp()) {
@@ -134,6 +139,23 @@ public class Builder {
 			builder.writeBuildProperties(buildFile, false);
 		} catch (IOException ex) {
 			System.err.println("Problem handling build properties.  Reason: " + ex.getMessage());
+		}
+
+		String htmlParameters = null;
+
+		if (builder.isUseParamFile()) {
+			String paramFileArg = cli.getOptionValue(ARG_PARAM_FILE);
+
+			if (paramFileArg != null) {
+				try {
+					System.out.println("Including parameters...");
+
+					String parameters = FileUtils.readFileToString(new File(paramFileArg));
+					htmlParameters = "var params = " + parameters + ";";
+				} catch (IOException ex) {
+					System.err.println("Problem reading parameters file! " + ex.getMessage());
+				}
+			}
 		}
 
 		try {
@@ -199,8 +221,8 @@ public class Builder {
 				String[] imageArgs = cli.getOptionValues(ARG_IMAGE);
 
 				if (imageArgs != null) {
-					for (int ctr = 0; ctr < imageArgs.length; ctr++) {
-						File file = new File(imageArgs[ctr]);
+					for (String imageArg : imageArgs) {
+						File file = new File(imageArg);
 						System.out.println("Including image " + file);
 
 						String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
@@ -257,9 +279,9 @@ public class Builder {
 		try {
 			System.out.println("Writing HTML... ");
 			if (builder.singleFile) {
-				builder.writeHtml(outputDir, compressedFileJs, compressedFileCss);
+				builder.writeHtml(outputDir, compressedFileJs, compressedFileCss, htmlParameters);
 			} else {
-				builder.writeHtml(outputDir);
+				builder.writeHtml(outputDir, htmlParameters);
 			}
 		} catch (IOException ex) {
 			System.err.println("Problem writing HTML.  Reason: " + ex.getMessage());
@@ -280,6 +302,7 @@ public class Builder {
 		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
 		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
 		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
+		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
 
 		CommandLineParser parser = new BasicParser();
 		CommandLine line = null;
@@ -305,8 +328,8 @@ public class Builder {
 	private File concatenateFiles(String[] files, String ext, File writeFile) throws IOException {
 		String concat = "";
 
-		for (int ctr = 0; ctr < files.length; ctr++) {
-			File file = new File(projectDir + "/" + files[ctr]);
+		for (String file2 : files) {
+			File file = new File(projectDir + "/" + file2);
 			concat += FileUtils.readFileToString(file) + "\n";
 		}
 
@@ -380,19 +403,20 @@ public class Builder {
 
 
 
-	private void writeHtml(File outputDir) throws IOException {
+	private void writeHtml(File outputDir, String params) throws IOException {
 		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String str = Utilities.getResourceAsString(RESOURCE_HTML);
 		str = replaceHtmlCssBlock(str, null);
 		str = replaceHtmlJsBlock(str, null);
+		str = replaceHtmlParamsBlock(str, params);
 
 		FileUtils.writeStringToFile(resourceOutputFile, str);
 	}
 
 
 
-	private void writeHtml(File outputDir, File jsFile, File cssFile) throws IOException {
+	private void writeHtml(File outputDir, File jsFile, File cssFile, String params) throws IOException {
 		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String html = Utilities.getResourceAsString(RESOURCE_HTML);
@@ -401,6 +425,7 @@ public class Builder {
 
 		html = replaceHtmlCssBlock(html, css);
 		html = replaceHtmlJsBlock(html, js);
+		html = replaceHtmlParamsBlock(html, params);
 
 		FileUtils.writeStringToFile(resourceOutputFile, html);
 
@@ -437,6 +462,20 @@ public class Builder {
 		}
 
 		return html.replace(JS_BLOCK, js);
+	}
+
+
+
+	private String replaceHtmlParamsBlock(String html, String params) {
+		String js = null;
+
+		if (params != null) {
+			js = "<script type=\"text/javascript\">\n" + params + "\n</script>\n";
+		} else {
+			js = "<script type=\"text/javascript\">\n" + DEFAULT_PARAMS + "\n</script>\n";
+		}
+
+		return html.replace(PARAM_BLOCK, js);
 	}
 
 
@@ -540,5 +579,17 @@ public class Builder {
 
 	public void setSingleFile(boolean singleFile) {
 		this.singleFile = singleFile;
+	}
+
+
+
+	public boolean isUseParamFile() {
+		return useParamFile;
+	}
+
+
+
+	public void setUseParamFile(boolean useParamFile) {
+		this.useParamFile = useParamFile;
 	}
 }

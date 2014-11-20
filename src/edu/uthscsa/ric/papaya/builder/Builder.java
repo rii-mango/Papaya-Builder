@@ -38,6 +38,7 @@ public class Builder {
 	private boolean useImages;
 	private boolean singleFile;
 	private boolean useParamFile;
+	private boolean useTitle;
 	private Options options;
 	private File projectDir;
 	private String buildVersion;
@@ -51,6 +52,7 @@ public class Builder {
 	public static final String ARG_IMAGE = "images";
 	public static final String ARG_SINGLE = "singlefile";
 	public static final String ARG_PARAM_FILE = "parameterfile";
+	public static final String ARG_TITLE = "title";
 	public static final String CLI_PROGRAM_NAME = "papaya-builder";
 	public static final String OUTPUT_DIR = "build";
 	public static final String OUTPUT_JS_FILENAME = "papaya.js";
@@ -61,6 +63,8 @@ public class Builder {
 	public static final String CSS_BLOCK = "<!-- CSS GOES HERE -->";
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
 	public static final String PARAM_BLOCK = "<!-- PARAMS GO HERE -->";
+	public static final String TITLE_BLOCK = "<!-- TITLE GOES HERE -->";
+	public static final String PAPAYA_BLOCK = "<!-- PAPAYA GOES HERE -->";
 	public static final String[] JS_FILES = { "lib/jquery.js", "src/js/constants.js", "src/js/utilities/base64-binary.js", "src/js/utilities/browser.js",
 			"src/js/utilities/numerics.js", "src/js/utilities/pako-inflate.js", "src/js/utilities/platform.js", "src/js/utilities/utilities.js",
 			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
@@ -93,6 +97,7 @@ public class Builder {
 		builder.setUseImages(cli.hasOption(ARG_IMAGE));
 		builder.setSingleFile(cli.hasOption(ARG_SINGLE));
 		builder.setUseParamFile(cli.hasOption(ARG_PARAM_FILE));
+		builder.setUseTitle(cli.hasOption(ARG_TITLE));
 
 		// print help, if necessary
 		if (builder.isPrintHelp()) {
@@ -150,10 +155,25 @@ public class Builder {
 				try {
 					System.out.println("Including parameters...");
 
-					String parameters = FileUtils.readFileToString(new File(paramFileArg));
+					String parameters = FileUtils.readFileToString(new File(paramFileArg), "UTF-8");
 					htmlParameters = "var params = " + parameters + ";";
 				} catch (IOException ex) {
 					System.err.println("Problem reading parameters file! " + ex.getMessage());
+				}
+			}
+		}
+
+		String title = null;
+		if (builder.isUseTitle()) {
+			String str = cli.getOptionValue(ARG_TITLE);
+			if (str != null) {
+				str = str.trim();
+				str = str.replace("\"", "");
+				str = str.replace("'", "");
+
+				if (str.length() > 0) {
+					title = str;
+					System.out.println("Using title: " + title);
 				}
 			}
 		}
@@ -171,7 +191,7 @@ public class Builder {
 				if (builder.isLocal()) {
 					loadableImages.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"encode\":\"" + filename + "\"}"));
 					String sampleEncoded = Utilities.encodeImageFile(sampleFile);
-					FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", true);
+					FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 				} else {
 					loadableImages
 							.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"url\":\"" + SAMPLE_IMAGE_NII_FILE + "\"}"));
@@ -231,7 +251,7 @@ public class Builder {
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
 									+ filename + "\",\"encode\":\"" + filename + "\"}"));
 							String sampleEncoded = Utilities.encodeImageFile(file);
-							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", true);
+							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
 							String filePath = "data/" + file.getName();
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
@@ -251,14 +271,15 @@ public class Builder {
 			}
 
 			// write image refs
-			FileUtils.writeStringToFile(tempFileJs, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";", true);
+			FileUtils.writeStringToFile(tempFileJs, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";\n", "UTF-8", true);
 
 			// compress JS
 			tempFileJs = builder.concatenateFiles(JS_FILES, "js", tempFileJs);
+
 			System.out.println("Compressing JavaScript... ");
-			FileUtils.writeStringToFile(compressedFileJs, "\n", true);
+			FileUtils.writeStringToFile(compressedFileJs, "\n", "UTF-8", true);
 			builder.compressJavaScript(tempFileJs, compressedFileJs, new YuiCompressorOptions());
-			tempFileJs.deleteOnExit();
+			//tempFileJs.deleteOnExit();
 		} catch (IOException ex) {
 			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
 		}
@@ -279,9 +300,9 @@ public class Builder {
 		try {
 			System.out.println("Writing HTML... ");
 			if (builder.singleFile) {
-				builder.writeHtml(outputDir, compressedFileJs, compressedFileCss, htmlParameters);
+				builder.writeHtml(outputDir, compressedFileJs, compressedFileCss, htmlParameters, title);
 			} else {
-				builder.writeHtml(outputDir, htmlParameters);
+				builder.writeHtml(outputDir, htmlParameters, title);
 			}
 		} catch (IOException ex) {
 			System.err.println("Problem writing HTML.  Reason: " + ex.getMessage());
@@ -303,6 +324,7 @@ public class Builder {
 		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
 		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
 		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
+		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
 
 		CommandLineParser parser = new BasicParser();
 		CommandLine line = null;
@@ -330,14 +352,14 @@ public class Builder {
 
 		for (String file2 : files) {
 			File file = new File(projectDir + "/" + file2);
-			concat += FileUtils.readFileToString(file) + "\n";
+			concat += FileUtils.readFileToString(file, "UTF-8") + "\n";
 		}
 
 		if (writeFile == null) {
 			writeFile = createTempFile();
 		}
 
-		FileUtils.writeStringToFile(writeFile, concat, true);
+		FileUtils.writeStringToFile(writeFile, concat, "UTF-8", true);
 
 		return writeFile;
 	}
@@ -349,8 +371,8 @@ public class Builder {
 			writeFile = createTempFile();
 		}
 
-		String str = FileUtils.readFileToString(readFile);
-		FileUtils.writeStringToFile(writeFile, str, true);
+		String str = FileUtils.readFileToString(readFile, "UTF-8");
+		FileUtils.writeStringToFile(writeFile, str, "UTF-8", true);
 
 		return writeFile;
 	}
@@ -403,31 +425,35 @@ public class Builder {
 
 
 
-	private void writeHtml(File outputDir, String params) throws IOException {
+	private void writeHtml(File outputDir, String params, String title) throws IOException {
 		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String str = Utilities.getResourceAsString(RESOURCE_HTML);
+		str = replaceHtmlParamsBlock(str, params);
+		str = replaceHtmlTitleBlock(str, title);
+		str = replaceHtmlPapayaBlock(str);
 		str = replaceHtmlCssBlock(str, null);
 		str = replaceHtmlJsBlock(str, null);
-		str = replaceHtmlParamsBlock(str, params);
 
-		FileUtils.writeStringToFile(resourceOutputFile, str);
+		FileUtils.writeStringToFile(resourceOutputFile, str, "UTF-8");
 	}
 
 
 
-	private void writeHtml(File outputDir, File jsFile, File cssFile, String params) throws IOException {
+	private void writeHtml(File outputDir, File jsFile, File cssFile, String params, String title) throws IOException {
 		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String html = Utilities.getResourceAsString(RESOURCE_HTML);
-		String js = FileUtils.readFileToString(jsFile);
-		String css = FileUtils.readFileToString(cssFile);
+		String js = FileUtils.readFileToString(jsFile, "UTF-8");
+		String css = FileUtils.readFileToString(cssFile, "UTF-8");
 
+		html = replaceHtmlParamsBlock(html, params);
+		html = replaceHtmlTitleBlock(html, title);
+		html = replaceHtmlPapayaBlock(html);
 		html = replaceHtmlCssBlock(html, css);
 		html = replaceHtmlJsBlock(html, js);
-		html = replaceHtmlParamsBlock(html, params);
 
-		FileUtils.writeStringToFile(resourceOutputFile, html);
+		FileUtils.writeStringToFile(resourceOutputFile, html, "UTF-8");
 
 		jsFile.delete();
 		jsFile.deleteOnExit();
@@ -480,9 +506,37 @@ public class Builder {
 
 
 
+	private String replaceHtmlTitleBlock(String html, String titleStr) {
+		String title = null;
+
+		if (titleStr != null) {
+			title = "<h3 style=\"text-align:center;font-family:sans-serif\">" + titleStr + "</h3>";
+		} else {
+			title = "";
+		}
+
+		return html.replace(TITLE_BLOCK, title);
+	}
+
+
+
+	private String replaceHtmlPapayaBlock(String html) {
+		String papaya = null;
+
+		if (isUseTitle()) {
+			papaya = "<div style=\"width:100%;text-align:center;\"><div class=\"papaya\" data-params=\"params\"></div></div>";
+		} else {
+			papaya = "<div class=\"papaya\" data-params=\"params\"></div>";
+		}
+
+		return html.replace(PAPAYA_BLOCK, papaya);
+	}
+
+
+
 	private void writeBuildProperties(File file, boolean append) throws IOException {
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + buildVersion + "\";\n", append);
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + buildNumber + "\";\n", true);
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + buildVersion + "\";\n", "UTF-8", append);
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + buildNumber + "\";\n", "UTF-8", true);
 	}
 
 
@@ -591,5 +645,17 @@ public class Builder {
 
 	public void setUseParamFile(boolean useParamFile) {
 		this.useParamFile = useParamFile;
+	}
+
+
+
+	public boolean isUseTitle() {
+		return useTitle;
+	}
+
+
+
+	public void setUseTitle(boolean useTitle) {
+		this.useTitle = useTitle;
 	}
 }

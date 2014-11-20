@@ -207,10 +207,10 @@ public class Builder {
 					String atlasArg = cli.getOptionValue(ARG_ATLAS);
 
 					if (atlasArg == null) {
-						atlasArg = SAMPLE_DEFAULT_ATLAS_FILE;
+						atlasArg = (builder.projectDir + "/" + SAMPLE_DEFAULT_ATLAS_FILE);
 					}
 
-					File atlasXmlFile = new File(builder.projectDir + "/" + atlasArg);
+					File atlasXmlFile = new File(atlasArg);
 
 					System.out.println("Including atlas " + atlasXmlFile);
 

@@ -23,7 +23,7 @@ public class YuiCompressorErrorReporter implements ErrorReporter {
 		if (line < 0) {
 			System.err.println("Error: " + message);
 		} else {
-			System.err.println("Error: " + line + ':' + lineOffset + ':' + message);
+			System.err.println("Error: " + line + ':' + lineOffset + ':' + message + ':' + sourceName + ":" + lineSource);
 		}
 	}
 

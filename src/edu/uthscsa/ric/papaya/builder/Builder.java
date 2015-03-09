@@ -65,16 +65,16 @@ public class Builder {
 	public static final String PARAM_BLOCK = "<!-- PARAMS GO HERE -->";
 	public static final String TITLE_BLOCK = "<!-- TITLE GOES HERE -->";
 	public static final String PAPAYA_BLOCK = "<!-- PAPAYA GOES HERE -->";
-	public static final String[] JS_FILES = { "lib/jquery.js", "src/js/constants.js", "src/js/utilities/base64-binary.js", "src/js/utilities/browser.js",
-			"src/js/utilities/numerics.js", "src/js/utilities/pako-inflate.js", "src/js/utilities/platform.js", "src/js/utilities/utilities.js",
-			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
-			"src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js",
-			"src/js/volume/nifti/nifti.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
-			"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js",
-			"src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js", "src/js/ui/menuitemslider.js",
-			"src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js", "src/js/viewer/display.js",
-			"src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js", "src/js/viewer/viewer.js", "src/js/main.js",
-			"src/js/license.js" };
+	public static final String[] JS_FILES = { "lib/jquery.js", "lib/daikon.js", "src/js/constants.js", "src/js/utilities/base64-binary.js",
+			"src/js/utilities/browser.js", "src/js/utilities/numerics.js", "src/js/utilities/pako-inflate.js", "src/js/utilities/platform.js",
+			"src/js/utilities/utilities.js", "src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js",
+			"src/js/volume/imagedescription.js", "src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js",
+			"src/js/volume/nifti/header-nifti.js", "src/js/volume/nifti/nifti.js", "src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js",
+			"src/js/volume/transform.js", "src/js/volume/volume.js", "src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js",
+			"src/js/ui/menu.js", "src/js/ui/menuitem.js", "src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
+			"src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js",
+			"src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js",
+			"src/js/viewer/viewer.js", "src/js/main.js", "src/js/license.js" };
 	public static final String[] CSS_FILES = { "src/css/base.css", "src/css/ui/toolbar.css", "src/css/ui/menu.css", "src/css/ui/dialog.css",
 			"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
 	public static final String RESOURCE_HTML = "index.html";
@@ -85,11 +85,11 @@ public class Builder {
 
 
 
-	public static void main(String[] args) {
-		Builder builder = new Builder();
+	public static void main(final String[] args) {
+		final Builder builder = new Builder();
 
 		// process command line
-		CommandLine cli = builder.createCLI(args);
+		final CommandLine cli = builder.createCLI(args);
 		builder.setUseSample(cli.hasOption(ARG_SAMPLE));
 		builder.setUseAtlas(cli.hasOption(ARG_ATLAS));
 		builder.setLocal(cli.hasOption(ARG_LOCAL));
@@ -109,7 +109,7 @@ public class Builder {
 		if (cli.hasOption(ARG_ROOT)) {
 			try {
 				builder.projectDir = (new File(cli.getOptionValue(ARG_ROOT))).getCanonicalFile();
-			} catch (IOException ex) {
+			} catch (final IOException ex) {
 				System.err.println("Problem finding root directory.  Reason: " + ex.getMessage());
 			}
 		}
@@ -119,11 +119,11 @@ public class Builder {
 		}
 
 		// clean output dir
-		File outputDir = new File(builder.projectDir + "/" + OUTPUT_DIR);
+		final File outputDir = new File(builder.projectDir + "/" + OUTPUT_DIR);
 		System.out.println("Cleaning output directory...");
 		try {
 			builder.cleanOutputDir(outputDir);
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			System.err.println("Problem cleaning build directory.  Reason: " + ex.getMessage());
 		}
 
@@ -132,32 +132,32 @@ public class Builder {
 		}
 
 		// write JS
-		File compressedFileJs = new File(outputDir, OUTPUT_JS_FILENAME);
+		final File compressedFileJs = new File(outputDir, OUTPUT_JS_FILENAME);
 
 		// build properties
 		try {
-			File buildFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
+			final File buildFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
 
 			builder.readBuildProperties(buildFile);
 			builder.buildNumber++; // increment build number
 			builder.writeBuildProperties(compressedFileJs, true);
 			builder.writeBuildProperties(buildFile, false);
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			System.err.println("Problem handling build properties.  Reason: " + ex.getMessage());
 		}
 
 		String htmlParameters = null;
 
 		if (builder.isUseParamFile()) {
-			String paramFileArg = cli.getOptionValue(ARG_PARAM_FILE);
+			final String paramFileArg = cli.getOptionValue(ARG_PARAM_FILE);
 
 			if (paramFileArg != null) {
 				try {
 					System.out.println("Including parameters...");
 
-					String parameters = FileUtils.readFileToString(new File(paramFileArg), "UTF-8");
+					final String parameters = FileUtils.readFileToString(new File(paramFileArg), "UTF-8");
 					htmlParameters = "var params = " + parameters + ";";
-				} catch (IOException ex) {
+				} catch (final IOException ex) {
 					System.err.println("Problem reading parameters file! " + ex.getMessage());
 				}
 			}
@@ -179,18 +179,18 @@ public class Builder {
 		}
 
 		try {
-			JSONArray loadableImages = new JSONArray();
+			final JSONArray loadableImages = new JSONArray();
 
 			// sample image
 			if (builder.isUseSample()) {
 				System.out.println("Including sample image...");
 
-				File sampleFile = new File(builder.projectDir + "/" + SAMPLE_IMAGE_NII_FILE);
-				String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(sampleFile.getName()));
+				final File sampleFile = new File(builder.projectDir + "/" + SAMPLE_IMAGE_NII_FILE);
+				final String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(sampleFile.getName()));
 
 				if (builder.isLocal()) {
 					loadableImages.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"encode\":\"" + filename + "\"}"));
-					String sampleEncoded = Utilities.encodeImageFile(sampleFile);
+					final String sampleEncoded = Utilities.encodeImageFile(sampleFile);
 					FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 				} else {
 					loadableImages
@@ -210,20 +210,20 @@ public class Builder {
 						atlasArg = (builder.projectDir + "/" + SAMPLE_DEFAULT_ATLAS_FILE);
 					}
 
-					File atlasXmlFile = new File(atlasArg);
+					final File atlasXmlFile = new File(atlasArg);
 
 					System.out.println("Including atlas " + atlasXmlFile);
 
 					atlas = new Atlas(atlasXmlFile);
-					File atlasJavaScriptFile = atlas.createAtlas(builder.isLocal());
+					final File atlasJavaScriptFile = atlas.createAtlas(builder.isLocal());
 					System.out.println("Using atlas image file " + atlas.getImageFile());
 
 					if (builder.isLocal()) {
 						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"encode\":\""
 								+ atlas.getImageFileNewName() + "\",\"hide\":true}"));
 					} else {
-						File atlasImageFile = atlas.getImageFile();
-						String atlasPath = "data/" + atlasImageFile.getName();
+						final File atlasImageFile = atlas.getImageFile();
+						final String atlasPath = "data/" + atlasImageFile.getName();
 
 						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath
 								+ "\",\"hide\":true}"));
@@ -231,29 +231,29 @@ public class Builder {
 					}
 
 					builder.writeFile(atlasJavaScriptFile, compressedFileJs);
-				} catch (IOException ex) {
+				} catch (final IOException ex) {
 					System.err.println("Problem finding atlas file.  Reason: " + ex.getMessage());
 				}
 			}
 
 			// additional images
 			if (builder.isUseImages()) {
-				String[] imageArgs = cli.getOptionValues(ARG_IMAGE);
+				final String[] imageArgs = cli.getOptionValues(ARG_IMAGE);
 
 				if (imageArgs != null) {
-					for (String imageArg : imageArgs) {
-						File file = new File(imageArg);
+					for (final String imageArg : imageArgs) {
+						final File file = new File(imageArg);
 						System.out.println("Including image " + file);
 
-						String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
+						final String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
 
 						if (builder.isLocal()) {
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
 									+ filename + "\",\"encode\":\"" + filename + "\"}"));
-							String sampleEncoded = Utilities.encodeImageFile(file);
+							final String sampleEncoded = Utilities.encodeImageFile(file);
 							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
-							String filePath = "data/" + file.getName();
+							final String filePath = "data/" + file.getName();
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
 									+ filename + "\",\"url\":\"" + filePath + "\"}"));
 							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
@@ -266,7 +266,7 @@ public class Builder {
 
 			try {
 				tempFileJs = builder.createTempFile();
-			} catch (IOException ex) {
+			} catch (final IOException ex) {
 				System.err.println("Problem creating temp write file.  Reason: " + ex.getMessage());
 			}
 
@@ -280,19 +280,19 @@ public class Builder {
 			FileUtils.writeStringToFile(compressedFileJs, "\n", "UTF-8", true);
 			builder.compressJavaScript(tempFileJs, compressedFileJs, new YuiCompressorOptions());
 			//tempFileJs.deleteOnExit();
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
 		}
 
 		// compress CSS
-		File compressedFileCss = new File(outputDir, OUTPUT_CSS_FILENAME);
+		final File compressedFileCss = new File(outputDir, OUTPUT_CSS_FILENAME);
 
 		try {
-			File concatFile = builder.concatenateFiles(CSS_FILES, "css", null);
+			final File concatFile = builder.concatenateFiles(CSS_FILES, "css", null);
 			System.out.println("Compressing CSS... ");
 			builder.compressCSS(concatFile, compressedFileCss, new YuiCompressorOptions());
 			concatFile.deleteOnExit();
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			System.err.println("Problem concatenating CSS.  Reason: " + ex.getMessage());
 		}
 
@@ -304,7 +304,7 @@ public class Builder {
 			} else {
 				builder.writeHtml(outputDir, htmlParameters, title);
 			}
-		} catch (IOException ex) {
+		} catch (final IOException ex) {
 			System.err.println("Problem writing HTML.  Reason: " + ex.getMessage());
 		}
 
@@ -314,24 +314,24 @@ public class Builder {
 
 
 	@SuppressWarnings("static-access")
-	private CommandLine createCLI(String[] args) {
-		options = new Options();
-		options.addOption(new Option(ARG_SAMPLE, "include sample image"));
-		options.addOption(new Option(ARG_LOCAL, "build for local usage"));
-		options.addOption(new Option(ARG_SINGLE, "output a single HTML file"));
-		options.addOption(new Option(ARG_HELP, "print this message"));
-		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
-		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
-		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
-		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
-		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
+	private CommandLine createCLI(final String[] args) {
+		this.options = new Options();
+		this.options.addOption(new Option(ARG_SAMPLE, "include sample image"));
+		this.options.addOption(new Option(ARG_LOCAL, "build for local usage"));
+		this.options.addOption(new Option(ARG_SINGLE, "output a single HTML file"));
+		this.options.addOption(new Option(ARG_HELP, "print this message"));
+		this.options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
+		this.options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
+		this.options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
+		this.options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
+		this.options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
 
-		CommandLineParser parser = new BasicParser();
+		final CommandLineParser parser = new BasicParser();
 		CommandLine line = null;
 
 		try {
-			line = parser.parse(options, args, true);
-		} catch (ParseException exp) {
+			line = parser.parse(this.options, args, true);
+		} catch (final ParseException exp) {
 			System.err.println("Parsing failed.  Reason: " + exp.getMessage());
 		}
 
@@ -340,18 +340,18 @@ public class Builder {
 
 
 
-	private void cleanOutputDir(File outputDir) throws IOException {
+	private void cleanOutputDir(final File outputDir) throws IOException {
 		Utilities.delete(outputDir);
 		outputDir.mkdir();
 	}
 
 
 
-	private File concatenateFiles(String[] files, String ext, File writeFile) throws IOException {
+	private File concatenateFiles(final String[] files, final String ext, File writeFile) throws IOException {
 		String concat = "";
 
-		for (String file2 : files) {
-			File file = new File(projectDir + "/" + file2);
+		for (final String file2 : files) {
+			final File file = new File(this.projectDir + "/" + file2);
 			concat += FileUtils.readFileToString(file, "UTF-8") + "\n";
 		}
 
@@ -366,12 +366,12 @@ public class Builder {
 
 
 
-	private File writeFile(File readFile, File writeFile) throws IOException {
+	private File writeFile(final File readFile, File writeFile) throws IOException {
 		if (writeFile == null) {
 			writeFile = createTempFile();
 		}
 
-		String str = FileUtils.readFileToString(readFile, "UTF-8");
+		final String str = FileUtils.readFileToString(readFile, "UTF-8");
 		FileUtils.writeStringToFile(writeFile, str, "UTF-8", true);
 
 		return writeFile;
@@ -385,13 +385,13 @@ public class Builder {
 
 
 
-	public void compressJavaScript(File inputFile, File outputFile, YuiCompressorOptions o) throws IOException {
+	public void compressJavaScript(final File inputFile, final File outputFile, final YuiCompressorOptions o) throws IOException {
 		Reader in = null;
 		Writer out = null;
 		try {
 			in = new InputStreamReader(new FileInputStream(inputFile), o.charset);
 
-			JavaScriptCompressor compressor = new JavaScriptCompressor(in, new YuiCompressorErrorReporter());
+			final JavaScriptCompressor compressor = new JavaScriptCompressor(in, new YuiCompressorErrorReporter());
 			in.close();
 			in = null;
 
@@ -405,13 +405,13 @@ public class Builder {
 
 
 
-	public void compressCSS(File inputFile, File outputFile, YuiCompressorOptions o) throws IOException {
+	public void compressCSS(final File inputFile, final File outputFile, final YuiCompressorOptions o) throws IOException {
 		Reader in = null;
 		Writer out = null;
 		try {
 			in = new InputStreamReader(new FileInputStream(inputFile), o.charset);
 
-			CssCompressor compressor = new CssCompressor(in);
+			final CssCompressor compressor = new CssCompressor(in);
 			in.close();
 			in = null;
 
@@ -425,8 +425,8 @@ public class Builder {
 
 
 
-	private void writeHtml(File outputDir, String params, String title) throws IOException {
-		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
+	private void writeHtml(final File outputDir, final String params, final String title) throws IOException {
+		final File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String str = Utilities.getResourceAsString(RESOURCE_HTML);
 		str = replaceHtmlParamsBlock(str, params);
@@ -440,12 +440,12 @@ public class Builder {
 
 
 
-	private void writeHtml(File outputDir, File jsFile, File cssFile, String params, String title) throws IOException {
-		File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
+	private void writeHtml(final File outputDir, final File jsFile, final File cssFile, final String params, final String title) throws IOException {
+		final File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String html = Utilities.getResourceAsString(RESOURCE_HTML);
-		String js = FileUtils.readFileToString(jsFile, "UTF-8");
-		String css = FileUtils.readFileToString(cssFile, "UTF-8");
+		final String js = FileUtils.readFileToString(jsFile, "UTF-8");
+		final String css = FileUtils.readFileToString(cssFile, "UTF-8");
 
 		html = replaceHtmlParamsBlock(html, params);
 		html = replaceHtmlTitleBlock(html, title);
@@ -464,13 +464,13 @@ public class Builder {
 
 
 
-	private String replaceHtmlCssBlock(String html, String cssBlock) {
+	private String replaceHtmlCssBlock(final String html, final String cssBlock) {
 		String css = null;
 
 		if (cssBlock != null) {
 			css = "<style type=\"text/css\">\n" + cssBlock + "\n</style>\n";
 		} else {
-			css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + "papaya.css?version=" + buildVersion + "&build=" + buildNumber + "\" />";
+			css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + "papaya.css?version=" + this.buildVersion + "&build=" + this.buildNumber + "\" />";
 		}
 
 		return html.replace(CSS_BLOCK, css);
@@ -478,13 +478,13 @@ public class Builder {
 
 
 
-	private String replaceHtmlJsBlock(String html, String jsBlock) {
+	private String replaceHtmlJsBlock(final String html, final String jsBlock) {
 		String js = null;
 
 		if (jsBlock != null) {
 			js = "<script type=\"text/javascript\">\n" + jsBlock + "\n</script>\n";
 		} else {
-			js = "<script type=\"text/javascript\" src=\"" + "papaya.js?version=" + buildVersion + "&build=" + buildNumber + "\"></script>";
+			js = "<script type=\"text/javascript\" src=\"" + "papaya.js?version=" + this.buildVersion + "&build=" + this.buildNumber + "\"></script>";
 		}
 
 		return html.replace(JS_BLOCK, js);
@@ -492,7 +492,7 @@ public class Builder {
 
 
 
-	private String replaceHtmlParamsBlock(String html, String params) {
+	private String replaceHtmlParamsBlock(final String html, final String params) {
 		String js = null;
 
 		if (params != null) {
@@ -506,7 +506,7 @@ public class Builder {
 
 
 
-	private String replaceHtmlTitleBlock(String html, String titleStr) {
+	private String replaceHtmlTitleBlock(final String html, final String titleStr) {
 		String title = null;
 
 		if (titleStr != null) {
@@ -520,7 +520,7 @@ public class Builder {
 
 
 
-	private String replaceHtmlPapayaBlock(String html) {
+	private String replaceHtmlPapayaBlock(final String html) {
 		String papaya = null;
 
 		if (isUseTitle()) {
@@ -534,91 +534,91 @@ public class Builder {
 
 
 
-	private void writeBuildProperties(File file, boolean append) throws IOException {
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + buildVersion + "\";\n", "UTF-8", append);
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + buildNumber + "\";\n", "UTF-8", true);
+	private void writeBuildProperties(final File file, final boolean append) throws IOException {
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + this.buildVersion + "\";\n", "UTF-8", append);
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + this.buildNumber + "\";\n", "UTF-8", true);
 	}
 
 
 
 	private void printHelp() {
-		HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp(CLI_PROGRAM_NAME + " [options]", options);
+		final HelpFormatter formatter = new HelpFormatter();
+		formatter.printHelp(CLI_PROGRAM_NAME + " [options]", this.options);
 	}
 
 
 
 	public boolean isLocal() {
-		return isLocal;
+		return this.isLocal;
 	}
 
 
 
-	public void setLocal(boolean isLocal) {
+	public void setLocal(final boolean isLocal) {
 		this.isLocal = isLocal;
 	}
 
 
 
 	public boolean isPrintHelp() {
-		return printHelp;
+		return this.printHelp;
 	}
 
 
 
-	public void setPrintHelp(boolean printHelp) {
+	public void setPrintHelp(final boolean printHelp) {
 		this.printHelp = printHelp;
 	}
 
 
 
 	public boolean isUseSample() {
-		return useSample;
+		return this.useSample;
 	}
 
 
 
-	public void setUseSample(boolean useSample) {
+	public void setUseSample(final boolean useSample) {
 		this.useSample = useSample;
 	}
 
 
 
 	public boolean isUseAtlas() {
-		return useAtlas;
+		return this.useAtlas;
 	}
 
 
 
-	public void setUseAtlas(boolean useAtlas) {
+	public void setUseAtlas(final boolean useAtlas) {
 		this.useAtlas = useAtlas;
 	}
 
 
 
 	public boolean isUseImages() {
-		return useImages;
+		return this.useImages;
 	}
 
 
 
-	public void setUseImages(boolean useImages) {
+	public void setUseImages(final boolean useImages) {
 		this.useImages = useImages;
 	}
 
 
 
 	// It's not a real Java properties file, so we need to handle reading it ourselves
-	private void readBuildProperties(File file) throws IOException {
-		List<String> lines = FileUtils.readLines(file);
-		Iterator<String> it = lines.iterator();
+	private void readBuildProperties(final File file) throws IOException {
+		final List<String> lines = FileUtils.readLines(file);
+		final Iterator<String> it = lines.iterator();
 
 		while (it.hasNext()) {
-			String line = it.next();
+			final String line = it.next();
 			if (line.indexOf(BUILD_PROP_PAPAYA_VERSION_ID) != -1) {
-				buildVersion = Utilities.findQuotedString(line);
+				this.buildVersion = Utilities.findQuotedString(line);
 			} else if (line.indexOf(BUILD_PROP_PAPAYA_BUILD_NUM) != -1) {
-				buildNumber = Integer.parseInt(Utilities.findQuotedString(line));
+				this.buildNumber = Integer.parseInt(Utilities.findQuotedString(line));
 			}
 		}
 	}
@@ -626,36 +626,36 @@ public class Builder {
 
 
 	public boolean isSingleFile() {
-		return singleFile;
+		return this.singleFile;
 	}
 
 
 
-	public void setSingleFile(boolean singleFile) {
+	public void setSingleFile(final boolean singleFile) {
 		this.singleFile = singleFile;
 	}
 
 
 
 	public boolean isUseParamFile() {
-		return useParamFile;
+		return this.useParamFile;
 	}
 
 
 
-	public void setUseParamFile(boolean useParamFile) {
+	public void setUseParamFile(final boolean useParamFile) {
 		this.useParamFile = useParamFile;
 	}
 
 
 
 	public boolean isUseTitle() {
-		return useTitle;
+		return this.useTitle;
 	}
 
 
 
-	public void setUseTitle(boolean useTitle) {
+	public void setUseTitle(final boolean useTitle) {
 		this.useTitle = useTitle;
 	}
 }

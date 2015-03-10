@@ -65,13 +65,14 @@ public class Builder {
 	public static final String PARAM_BLOCK = "<!-- PARAMS GO HERE -->";
 	public static final String TITLE_BLOCK = "<!-- TITLE GOES HERE -->";
 	public static final String PAPAYA_BLOCK = "<!-- PAPAYA GOES HERE -->";
-	public static final String[] JS_FILES = { "lib/jquery.js", "lib/daikon.js", "src/js/constants.js", "src/js/utilities/base64-binary.js",
-			"src/js/utilities/browser.js", "src/js/utilities/numerics.js", "src/js/utilities/pako-inflate.js", "src/js/utilities/platform.js",
-			"src/js/utilities/utilities.js", "src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js",
-			"src/js/volume/imagedescription.js", "src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js",
-			"src/js/volume/nifti/header-nifti.js", "src/js/volume/nifti/nifti.js", "src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js",
-			"src/js/volume/transform.js", "src/js/volume/volume.js", "src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js",
-			"src/js/ui/menu.js", "src/js/ui/menuitem.js", "src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
+	public static final String[] JS_FILES = { "lib/jquery.js", "lib/base64-binary.js", "lib/bowser.js", "lib/daikon.js", "lib/numerics.js",
+			"lib/pako-inflate.js", "src/js/constants.js", "src/js/utilities/array-utils.js", "src/js/utilities/math-utils.js",
+			"src/js/utilities/object-utils.js", "src/js/utilities/platform-utils.js", "src/js/utilities/string-utils.js", "src/js/utilities/url-utils.js",
+			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
+			"src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js",
+			"src/js/volume/nifti/nifti.js", "src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js",
+			"src/js/volume/volume.js", "src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js",
+			"src/js/ui/menuitem.js", "src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
 			"src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js",
 			"src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js",
 			"src/js/viewer/viewer.js", "src/js/main.js", "src/js/license.js" };

@@ -13,27 +13,41 @@ Usage
 -----
 ```shell
 usage: papaya-builder [options]
- -atlas <file>     add atlas
- -help             print this message
- -images <files>   images to include
- -local            build for local usage
- -root <dir>       papaya project directory
- -sample           include sample image
+ -atlas <file>           add atlas (default atlas if no arg)
+ -help                   print this message
+ -images <files>         images to include
+ -local                  build for local usage
+ -nodicom                do not include DICOM support
+ -nojquery               do not include JQuery library
+ -parameterfile <file>   specify parameters
+ -root <dir>             papaya project directory
+ -sample                 include sample image
+ -singlefile             output a single HTML file
+ -title <text>           add a title
 ```
 
 ###-atlas
 Atlas must follow the [FSL Atlas Specification](http://ric.uthscsa.edu/mango/atlas_spec.html).  When building, 
 provide the path to the atlas XML file. To use the default Talairach/MNI label atlas, leave the `<file>` field blank.
 
+###-help
+Prints the above list of parameters.
+
+###-images
+Specify one or more image file paths.  These images will appear as File menu options (similar to the sample image).
+
 ###-local
 To build for local usage, include the `-local` flag.  In this case, image data is encoded and embedded within the 
 JavaScript.
 
-###-singlefile
-Outputs a single HTML file: collapses all HTML, CSS, JavaScript, and image data (if local) into one file.
+###-nodicom
+Do not include the DICOM (Daikon) library.
 
-###-images
-Specify one or more image file paths.  These images will appear as File menu options (similar to the sample image).
+###-nojquery
+Do not include the Jquery library.  The output index.html will reference the ajax.googleapis.com hosted Jquery.
+
+###-parameterfile
+A file that contains the Papaya config parameters.  The contents of this file will be concatenated to "var params = " in the JavaScript portion of the output HTML header.  See http://rii.uthscsa.edu/mango/papaya_devguide.html for parameter usage.
 
 ###-root
 Point the builder to the root of the papaya folder.  Omiting this option will use the current working directory.
@@ -41,6 +55,11 @@ Point the builder to the root of the papaya folder.  Omiting this option will us
 ###-sample
 Use this option to include a sample image.  An _Add Sample Image_ option will appear in the Papaya viewer File menu.
 
+###-singlefile
+Outputs a single HTML file: collapses all HTML, CSS, JavaScript, and image data (if local) into one file.
+
+###-title
+Adds a title to the viewer.
 
 Acknowledgments
 -----

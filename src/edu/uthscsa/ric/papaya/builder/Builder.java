@@ -333,7 +333,7 @@ public class Builder {
 		options.addOption(new Option(ARG_HELP, "print this message"));
 		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
 		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
-		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
+		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas (default atlas if no arg)").create(ARG_ATLAS));
 		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
 		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
 

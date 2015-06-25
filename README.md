@@ -41,7 +41,7 @@ To build for local usage, include the `-local` flag.  In this case, image data i
 JavaScript.
 
 ###-nodicom
-Do not include the DICOM (Daikon) library.
+Do not include the DICOM ([Daikon](https://github.com/rii-mango/Daikon)) library.
 
 ###-nojquery
 Do not include the Jquery library.  The output index.html will reference the ajax.googleapis.com hosted Jquery.

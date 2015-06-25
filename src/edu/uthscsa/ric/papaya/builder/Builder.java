@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -33,6 +34,8 @@ public class Builder {
 
 	private boolean useSample;
 	private boolean useAtlas;
+	private boolean skipJquery;
+	private boolean skipDaikon;
 	private boolean isLocal;
 	private boolean printHelp;
 	private boolean useImages;
@@ -50,6 +53,8 @@ public class Builder {
 	public static final String ARG_ROOT = "root";
 	public static final String ARG_ATLAS = "atlas";
 	public static final String ARG_IMAGE = "images";
+	public static final String ARG_SKIP_JQUERY = "nojquery";
+	public static final String ARG_SKIP_DICOM = "nodicom";
 	public static final String ARG_SINGLE = "singlefile";
 	public static final String ARG_PARAM_FILE = "parameterfile";
 	public static final String ARG_TITLE = "title";
@@ -65,17 +70,19 @@ public class Builder {
 	public static final String PARAM_BLOCK = "<!-- PARAMS GO HERE -->";
 	public static final String TITLE_BLOCK = "<!-- TITLE GOES HERE -->";
 	public static final String PAPAYA_BLOCK = "<!-- PAPAYA GOES HERE -->";
-	public static final String[] JS_FILES = { "lib/jquery.js", "lib/base64-binary.js", "lib/bowser.js", "lib/daikon.js", "lib/numerics.js",
-			"lib/pako-inflate.js", "src/js/constants.js", "src/js/utilities/array-utils.js", "src/js/utilities/math-utils.js",
-			"src/js/utilities/object-utils.js", "src/js/utilities/platform-utils.js", "src/js/utilities/string-utils.js", "src/js/utilities/url-utils.js",
-			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
-			"src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js",
-			"src/js/volume/nifti/nifti.js", "src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js",
-			"src/js/volume/volume.js", "src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js",
-			"src/js/ui/menuitem.js", "src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
-			"src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js",
-			"src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js",
-			"src/js/viewer/viewer.js", "src/js/main.js", "src/js/license.js" };
+	public static final String JS_FILE_JQUERY = "lib/jquery.js";
+	public static final String JS_FILE_DAIKON = "lib/daikon.js";
+	public static final String[] JS_FILES = { "lib/base64-binary.js", "lib/bowser.js", "lib/numerics.js", "lib/pako-inflate.js", "src/js/constants.js",
+			"src/js/utilities/array-utils.js", "src/js/utilities/math-utils.js", "src/js/utilities/object-utils.js", "src/js/utilities/platform-utils.js",
+			"src/js/utilities/string-utils.js", "src/js/utilities/url-utils.js", "src/js/core/coordinate.js", "src/js/core/point.js",
+			"src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js", "src/js/volume/imagedimensions.js",
+			"src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js", "src/js/volume/nifti/nifti.js",
+			"src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
+			"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js",
+			"src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js", "src/js/ui/menuitemslider.js",
+			"src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js", "src/js/viewer/display.js",
+			"src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js", "src/js/viewer/viewer.js", "src/js/main.js",
+			"src/js/license.js" };
 	public static final String[] CSS_FILES = { "src/css/base.css", "src/css/ui/toolbar.css", "src/css/ui/menu.css", "src/css/ui/dialog.css",
 			"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
 	public static final String RESOURCE_HTML = "index.html";
@@ -92,6 +99,8 @@ public class Builder {
 		// process command line
 		final CommandLine cli = builder.createCLI(args);
 		builder.setUseSample(cli.hasOption(ARG_SAMPLE));
+		builder.setSkipJquery(cli.hasOption(ARG_SKIP_JQUERY));
+		builder.setSkipDaikon(cli.hasOption(ARG_SKIP_DICOM));
 		builder.setUseAtlas(cli.hasOption(ARG_ATLAS));
 		builder.setLocal(cli.hasOption(ARG_LOCAL));
 		builder.setPrintHelp(cli.hasOption(ARG_HELP));
@@ -275,7 +284,7 @@ public class Builder {
 			FileUtils.writeStringToFile(tempFileJs, "var " + PAPAYA_LOADABLE_IMAGES + " = " + loadableImages.toString() + ";\n", "UTF-8", true);
 
 			// compress JS
-			tempFileJs = builder.concatenateFiles(JS_FILES, "js", tempFileJs);
+			tempFileJs = builder.concatenateFiles(builder.getJavaScriptFiles(), "js", tempFileJs);
 
 			System.out.println("Compressing JavaScript... ");
 			FileUtils.writeStringToFile(compressedFileJs, "\n", "UTF-8", true);
@@ -308,30 +317,31 @@ public class Builder {
 		} catch (final IOException ex) {
 			System.err.println("Problem writing HTML.  Reason: " + ex.getMessage());
 		}
-
-		System.out.println("Done!  Output files located at " + outputDir);
 	}
 
 
 
 	@SuppressWarnings("static-access")
 	private CommandLine createCLI(final String[] args) {
-		this.options = new Options();
-		this.options.addOption(new Option(ARG_SAMPLE, "include sample image"));
-		this.options.addOption(new Option(ARG_LOCAL, "build for local usage"));
-		this.options.addOption(new Option(ARG_SINGLE, "output a single HTML file"));
-		this.options.addOption(new Option(ARG_HELP, "print this message"));
-		this.options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
-		this.options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
-		this.options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
-		this.options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
-		this.options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
+		options = new Options();
+		options.addOption(new Option(ARG_SAMPLE, "include sample image"));
+		options.addOption(new Option(ARG_LOCAL, "build for local usage"));
+		options.addOption(new Option(ARG_SINGLE, "output a single HTML file"));
+		options.addOption(new Option(ARG_HELP, "print this message"));
+		options.addOption(new Option(ARG_SKIP_JQUERY, "do not include JQuery library"));
+		options.addOption(new Option(ARG_SKIP_DICOM, "do not include DICOM support"));
+		options.addOption(new Option(ARG_HELP, "print this message"));
+		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
+		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
+		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas").create(ARG_ATLAS));
+		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
+		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
 
 		final CommandLineParser parser = new BasicParser();
 		CommandLine line = null;
 
 		try {
-			line = parser.parse(this.options, args, true);
+			line = parser.parse(options, args, true);
 		} catch (final ParseException exp) {
 			System.err.println("Parsing failed.  Reason: " + exp.getMessage());
 		}
@@ -348,11 +358,31 @@ public class Builder {
 
 
 
+	private String[] getJavaScriptFiles() {
+		final List<String> list = new ArrayList<String>();
+
+		if (!skipJquery) {
+			list.add(JS_FILE_JQUERY);
+		}
+
+		if (!skipDaikon) {
+			list.add(JS_FILE_DAIKON);
+		}
+
+		for (final String file : JS_FILES) {
+			list.add(file);
+		}
+
+		return list.toArray(new String[list.size()]);
+	}
+
+
+
 	private File concatenateFiles(final String[] files, final String ext, File writeFile) throws IOException {
 		String concat = "";
 
 		for (final String file2 : files) {
-			final File file = new File(this.projectDir + "/" + file2);
+			final File file = new File(projectDir + "/" + file2);
 			concat += FileUtils.readFileToString(file, "UTF-8") + "\n";
 		}
 
@@ -471,7 +501,7 @@ public class Builder {
 		if (cssBlock != null) {
 			css = "<style type=\"text/css\">\n" + cssBlock + "\n</style>\n";
 		} else {
-			css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + "papaya.css?version=" + this.buildVersion + "&build=" + this.buildNumber + "\" />";
+			css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + "papaya.css?version=" + buildVersion + "&build=" + buildNumber + "\" />";
 		}
 
 		return html.replace(CSS_BLOCK, css);
@@ -480,12 +510,16 @@ public class Builder {
 
 
 	private String replaceHtmlJsBlock(final String html, final String jsBlock) {
-		String js = null;
+		String js = "";
+
+		if (skipJquery) {
+			js += "<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js\"></script>\n";
+		}
 
 		if (jsBlock != null) {
-			js = "<script type=\"text/javascript\">\n" + jsBlock + "\n</script>\n";
+			js += "<script type=\"text/javascript\">\n" + jsBlock + "\n</script>\n";
 		} else {
-			js = "<script type=\"text/javascript\" src=\"" + "papaya.js?version=" + this.buildVersion + "&build=" + this.buildNumber + "\"></script>";
+			js += "<script type=\"text/javascript\" src=\"" + "papaya.js?version=" + buildVersion + "&build=" + buildNumber + "\"></script>";
 		}
 
 		return html.replace(JS_BLOCK, js);
@@ -536,21 +570,21 @@ public class Builder {
 
 
 	private void writeBuildProperties(final File file, final boolean append) throws IOException {
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + this.buildVersion + "\";\n", "UTF-8", append);
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + this.buildNumber + "\";\n", "UTF-8", true);
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + buildVersion + "\";\n", "UTF-8", append);
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + buildNumber + "\";\n", "UTF-8", true);
 	}
 
 
 
 	private void printHelp() {
 		final HelpFormatter formatter = new HelpFormatter();
-		formatter.printHelp(CLI_PROGRAM_NAME + " [options]", this.options);
+		formatter.printHelp(CLI_PROGRAM_NAME + " [options]", options);
 	}
 
 
 
 	public boolean isLocal() {
-		return this.isLocal;
+		return isLocal;
 	}
 
 
@@ -562,7 +596,7 @@ public class Builder {
 
 
 	public boolean isPrintHelp() {
-		return this.printHelp;
+		return printHelp;
 	}
 
 
@@ -574,7 +608,7 @@ public class Builder {
 
 
 	public boolean isUseSample() {
-		return this.useSample;
+		return useSample;
 	}
 
 
@@ -586,7 +620,7 @@ public class Builder {
 
 
 	public boolean isUseAtlas() {
-		return this.useAtlas;
+		return useAtlas;
 	}
 
 
@@ -598,7 +632,7 @@ public class Builder {
 
 
 	public boolean isUseImages() {
-		return this.useImages;
+		return useImages;
 	}
 
 
@@ -617,9 +651,9 @@ public class Builder {
 		while (it.hasNext()) {
 			final String line = it.next();
 			if (line.indexOf(BUILD_PROP_PAPAYA_VERSION_ID) != -1) {
-				this.buildVersion = Utilities.findQuotedString(line);
+				buildVersion = Utilities.findQuotedString(line);
 			} else if (line.indexOf(BUILD_PROP_PAPAYA_BUILD_NUM) != -1) {
-				this.buildNumber = Integer.parseInt(Utilities.findQuotedString(line));
+				buildNumber = Integer.parseInt(Utilities.findQuotedString(line));
 			}
 		}
 	}
@@ -627,7 +661,7 @@ public class Builder {
 
 
 	public boolean isSingleFile() {
-		return this.singleFile;
+		return singleFile;
 	}
 
 
@@ -639,7 +673,7 @@ public class Builder {
 
 
 	public boolean isUseParamFile() {
-		return this.useParamFile;
+		return useParamFile;
 	}
 
 
@@ -651,12 +685,36 @@ public class Builder {
 
 
 	public boolean isUseTitle() {
-		return this.useTitle;
+		return useTitle;
 	}
 
 
 
 	public void setUseTitle(final boolean useTitle) {
 		this.useTitle = useTitle;
+	}
+
+
+
+	public boolean isSkipJquery() {
+		return skipJquery;
+	}
+
+
+
+	public void setSkipJquery(final boolean skipJquery) {
+		this.skipJquery = skipJquery;
+	}
+
+
+
+	public boolean isSkipDaikon() {
+		return skipDaikon;
+	}
+
+
+
+	public void setSkipDaikon(final boolean skipDaikon) {
+		this.skipDaikon = skipDaikon;
 	}
 }

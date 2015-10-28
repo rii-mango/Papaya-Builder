@@ -44,7 +44,7 @@ JavaScript.
 Do not include the DICOM ([Daikon](https://github.com/rii-mango/Daikon)) library.
 
 ###-nojquery
-Do not include the Jquery library.  The output index.html will reference the ajax.googleapis.com hosted Jquery.
+Do not include the Jquery library.  If your webpage already loads Jquery, you can avoid adding it again to papaya.js. The output index.html will reference the ajax.googleapis.com hosted Jquery as a placeholder.
 
 ###-parameterfile
 A file that contains the Papaya config parameters.  The contents of this file will be concatenated to "var params = " in the JavaScript portion of the output HTML header.  See http://rii.uthscsa.edu/mango/papaya_devguide.html for parameter usage.

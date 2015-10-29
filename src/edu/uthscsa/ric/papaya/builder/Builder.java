@@ -42,6 +42,7 @@ public class Builder {
 	private boolean singleFile;
 	private boolean useParamFile;
 	private boolean useTitle;
+	private boolean useFootnote;
 	private Options options;
 	private File projectDir;
 	private String buildVersion;
@@ -58,6 +59,7 @@ public class Builder {
 	public static final String ARG_SINGLE = "singlefile";
 	public static final String ARG_PARAM_FILE = "parameterfile";
 	public static final String ARG_TITLE = "title";
+	public static final String ARG_FOOTNOTE = "footnote";
 	public static final String CLI_PROGRAM_NAME = "papaya-builder";
 	public static final String OUTPUT_DIR = "build";
 	public static final String OUTPUT_JS_FILENAME = "papaya.js";
@@ -69,22 +71,23 @@ public class Builder {
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
 	public static final String PARAM_BLOCK = "<!-- PARAMS GO HERE -->";
 	public static final String TITLE_BLOCK = "<!-- TITLE GOES HERE -->";
+	public static final String FOOTNOTE_BLOCK = "<!-- FOOTNOTE GOES HERE -->";
 	public static final String PAPAYA_BLOCK = "<!-- PAPAYA GOES HERE -->";
 	public static final String JS_FILE_JQUERY = "lib/jquery.js";
 	public static final String JS_FILE_DAIKON = "lib/daikon.js";
 	public static final String[] JS_FILES = { "lib/base64-binary.js", "lib/bowser.js", "lib/numerics.js", "lib/pako-inflate.js", "src/js/constants.js",
-			"src/js/utilities/array-utils.js", "src/js/utilities/math-utils.js", "src/js/utilities/object-utils.js", "src/js/utilities/platform-utils.js",
-			"src/js/utilities/string-utils.js", "src/js/utilities/url-utils.js", "src/js/core/coordinate.js", "src/js/core/point.js",
-			"src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js", "src/js/volume/imagedimensions.js",
-			"src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js", "src/js/volume/nifti/nifti.js",
-			"src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
-			"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js",
-			"src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemradiobutton.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
-			"src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js",
-			"src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js",
-			"src/js/viewer/viewer.js", "src/js/main.js", "src/js/license.js" };
+		"src/js/utilities/array-utils.js", "src/js/utilities/math-utils.js", "src/js/utilities/object-utils.js", "src/js/utilities/platform-utils.js",
+		"src/js/utilities/string-utils.js", "src/js/utilities/url-utils.js", "src/js/core/coordinate.js", "src/js/core/point.js",
+		"src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js", "src/js/volume/imagedimensions.js",
+		"src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js", "src/js/volume/nifti/nifti.js",
+		"src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
+		"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js",
+		"src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemradiobutton.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
+		"src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js",
+		"src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js",
+		"src/js/viewer/viewer.js", "src/js/main.js", "src/js/license.js" };
 	public static final String[] CSS_FILES = { "src/css/base.css", "src/css/ui/toolbar.css", "src/css/ui/menu.css", "src/css/ui/dialog.css",
-			"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
+		"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
 	public static final String RESOURCE_HTML = "index.html";
 	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
@@ -108,6 +111,7 @@ public class Builder {
 		builder.setSingleFile(cli.hasOption(ARG_SINGLE));
 		builder.setUseParamFile(cli.hasOption(ARG_PARAM_FILE));
 		builder.setUseTitle(cli.hasOption(ARG_TITLE));
+		builder.setUseFootnote(cli.hasOption(ARG_FOOTNOTE));
 
 		// print help, if necessary
 		if (builder.isPrintHelp()) {
@@ -186,6 +190,23 @@ public class Builder {
 					System.out.println("Using title: " + title);
 				}
 			}
+		} else if (builder.isUseFootnote()) {
+			title = "&nbsp;";
+		}
+
+		String footnote = null;
+		if (builder.isUseFootnote()) {
+			String str = cli.getOptionValue(ARG_FOOTNOTE);
+			if (str != null) {
+				str = str.trim();
+				str = str.replace("\"", "");
+				str = str.replace("'", "");
+
+				if (str.length() > 0) {
+					footnote = str;
+					System.out.println("Using footnote: " + footnote);
+				}
+			}
 		}
 
 		try {
@@ -204,7 +225,7 @@ public class Builder {
 					FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 				} else {
 					loadableImages
-							.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"url\":\"" + SAMPLE_IMAGE_NII_FILE + "\"}"));
+					.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"url\":\"" + SAMPLE_IMAGE_NII_FILE + "\"}"));
 					FileUtils.copyFile(sampleFile, new File(outputDir + "/" + SAMPLE_IMAGE_NII_FILE));
 				}
 			}
@@ -310,9 +331,9 @@ public class Builder {
 		try {
 			System.out.println("Writing HTML... ");
 			if (builder.singleFile) {
-				builder.writeHtml(outputDir, compressedFileJs, compressedFileCss, htmlParameters, title);
+				builder.writeHtml(outputDir, compressedFileJs, compressedFileCss, htmlParameters, title, footnote);
 			} else {
-				builder.writeHtml(outputDir, htmlParameters, title);
+				builder.writeHtml(outputDir, htmlParameters, title, footnote);
 			}
 		} catch (final IOException ex) {
 			System.err.println("Problem writing HTML.  Reason: " + ex.getMessage());
@@ -336,6 +357,7 @@ public class Builder {
 		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas (default atlas if no arg)").create(ARG_ATLAS));
 		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
 		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
+		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a footnote").create(ARG_FOOTNOTE));
 
 		final CommandLineParser parser = new BasicParser();
 		CommandLine line = null;
@@ -456,13 +478,14 @@ public class Builder {
 
 
 
-	private void writeHtml(final File outputDir, final String params, final String title) throws IOException {
+	private void writeHtml(final File outputDir, final String params, final String title, final String footnote) throws IOException {
 		final File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String str = Utilities.getResourceAsString(RESOURCE_HTML);
 		str = replaceHtmlParamsBlock(str, params);
 		str = replaceHtmlTitleBlock(str, title);
 		str = replaceHtmlPapayaBlock(str);
+		str = replaceHtmlFootnoteBlock(str, footnote);
 		str = replaceHtmlCssBlock(str, null);
 		str = replaceHtmlJsBlock(str, null);
 
@@ -471,7 +494,8 @@ public class Builder {
 
 
 
-	private void writeHtml(final File outputDir, final File jsFile, final File cssFile, final String params, final String title) throws IOException {
+	private void writeHtml(final File outputDir, final File jsFile, final File cssFile, final String params, final String title, final String footnote)
+			throws IOException {
 		final File resourceOutputFile = new File(outputDir, RESOURCE_HTML);
 
 		String html = Utilities.getResourceAsString(RESOURCE_HTML);
@@ -481,6 +505,7 @@ public class Builder {
 		html = replaceHtmlParamsBlock(html, params);
 		html = replaceHtmlTitleBlock(html, title);
 		html = replaceHtmlPapayaBlock(html);
+		html = replaceHtmlFootnoteBlock(html, footnote);
 		html = replaceHtmlCssBlock(html, css);
 		html = replaceHtmlJsBlock(html, js);
 
@@ -555,11 +580,25 @@ public class Builder {
 
 
 
+	private String replaceHtmlFootnoteBlock(final String html, final String footnoteStr) {
+		String footnote = null;
+
+		if (footnoteStr != null) {
+			footnote = "<p style=\"width:55%;margin:10px auto;text-align:center;font-family:sans-serif\">" + footnoteStr + "</p>";
+		} else {
+			footnote = "";
+		}
+
+		return html.replace(FOOTNOTE_BLOCK, footnote);
+	}
+
+
+
 	private String replaceHtmlPapayaBlock(final String html) {
 		String papaya = null;
 
-		if (isUseTitle()) {
-			papaya = "<div style=\"width:100%;text-align:center;\"><div class=\"papaya\" data-params=\"params\"></div></div>";
+		if (isUseTitle() || isUseFootnote()) {
+			papaya = "<div style=\"width:55%;margin:auto;text-align:center;\"><div class=\"papaya\" data-params=\"params\"></div></div>";
 		} else {
 			papaya = "<div class=\"papaya\" data-params=\"params\"></div>";
 		}
@@ -716,5 +755,17 @@ public class Builder {
 
 	public void setSkipDaikon(final boolean skipDaikon) {
 		this.skipDaikon = skipDaikon;
+	}
+
+
+
+	public boolean isUseFootnote() {
+		return useFootnote;
+	}
+
+
+
+	public void setUseFootnote(boolean useFootnote) {
+		this.useFootnote = useFootnote;
 	}
 }

@@ -14,6 +14,7 @@ Usage
 ```shell
 usage: papaya-builder [options]
  -atlas <file>           add atlas (default atlas if no arg)
+ -footnote <text>        add a footnote
  -help                   print this message
  -images <files>         images to include
  -local                  build for local usage
@@ -60,6 +61,9 @@ Outputs a single HTML file: collapses all HTML, CSS, JavaScript, and image data 
 
 ###-title
 Adds a title to the viewer.
+
+###-footnote
+Add a caption below the viewer.
 
 Acknowledgments
 -----

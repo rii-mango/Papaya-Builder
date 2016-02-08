@@ -75,19 +75,19 @@ public class Builder {
 	public static final String PAPAYA_BLOCK = "<!-- PAPAYA GOES HERE -->";
 	public static final String JS_FILE_JQUERY = "lib/jquery.js";
 	public static final String JS_FILE_DAIKON = "lib/daikon.js";
-	public static final String[] JS_FILES = { "lib/base64-binary.js", "lib/bowser.js", "lib/numerics.js", "lib/pako-inflate.js", "src/js/constants.js",
-		"src/js/utilities/array-utils.js", "src/js/utilities/math-utils.js", "src/js/utilities/object-utils.js", "src/js/utilities/platform-utils.js",
-		"src/js/utilities/string-utils.js", "src/js/utilities/url-utils.js", "src/js/core/coordinate.js", "src/js/core/point.js",
-		"src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js", "src/js/volume/imagedimensions.js",
-		"src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js", "src/js/volume/nifti/nifti.js",
-		"src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
-		"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js",
-		"src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemradiobutton.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
-		"src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js",
-		"src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js",
-		"src/js/viewer/viewer.js", "src/js/main.js", "src/js/license.js" };
+	public static final String[] JS_FILES = { "lib/base64-binary.js", "lib/bowser.js", "lib/numerics.js", "lib/pako-inflate.js", "lib/nifti-reader.js",
+			"src/js/constants.js", "src/js/utilities/array-utils.js", "src/js/utilities/math-utils.js", "src/js/utilities/object-utils.js",
+			"src/js/utilities/platform-utils.js", "src/js/utilities/string-utils.js", "src/js/utilities/url-utils.js", "src/js/core/coordinate.js",
+			"src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
+			"src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js",
+			"src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
+			"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js",
+			"src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemradiobutton.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js",
+			"src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js",
+			"src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js",
+			"src/js/viewer/viewer.js", "src/js/main.js", "src/js/license.js" };
 	public static final String[] CSS_FILES = { "src/css/base.css", "src/css/ui/toolbar.css", "src/css/ui/menu.css", "src/css/ui/dialog.css",
-		"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
+			"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
 	public static final String RESOURCE_HTML = "index.html";
 	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
@@ -225,7 +225,7 @@ public class Builder {
 					FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 				} else {
 					loadableImages
-					.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"url\":\"" + SAMPLE_IMAGE_NII_FILE + "\"}"));
+							.put(new JSONObject("{\"nicename\":\"Sample Image\",\"name\":\"" + filename + "\",\"url\":\"" + SAMPLE_IMAGE_NII_FILE + "\"}"));
 					FileUtils.copyFile(sampleFile, new File(outputDir + "/" + SAMPLE_IMAGE_NII_FILE));
 				}
 			}
@@ -765,7 +765,7 @@ public class Builder {
 
 
 
-	public void setUseFootnote(boolean useFootnote) {
+	public void setUseFootnote(final boolean useFootnote) {
 		this.useFootnote = useFootnote;
 	}
 }

@@ -89,8 +89,8 @@ public class Builder {
 	public static final String[] CSS_FILES = { "src/css/base.css", "src/css/ui/toolbar.css", "src/css/ui/menu.css", "src/css/ui/dialog.css",
 			"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
 	public static final String RESOURCE_HTML = "index.html";
-	public static final String SAMPLE_IMAGE_NII_FILE = "data/sample_image.nii.gz";
-	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "data/Talairach.xml";
+	public static final String SAMPLE_IMAGE_NII_FILE = "tests/data/sample_image.nii.gz";
+	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "tests/data/Talairach.xml";
 	public static final String PAPAYA_LOADABLE_IMAGES = "papayaLoadableImages";
 	public static final String DEFAULT_PARAMS = "var params = [];";
 
@@ -256,8 +256,8 @@ public class Builder {
 						final File atlasImageFile = atlas.getImageFile();
 						final String atlasPath = "data/" + atlasImageFile.getName();
 
-						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath
-								+ "\",\"hide\":true}"));
+						loadableImages.put(new JSONObject(
+								"{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath + "\",\"hide\":true}"));
 						FileUtils.copyFile(atlasImageFile, new File(outputDir + "/" + atlasPath));
 					}
 
@@ -279,14 +279,14 @@ public class Builder {
 						final String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
 
 						if (builder.isLocal()) {
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"encode\":\"" + filename + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
+									+ "\",\"encode\":\"" + filename + "\"}"));
 							final String sampleEncoded = Utilities.encodeImageFile(file);
 							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
 							final String filePath = "data/" + file.getName();
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"url\":\"" + filePath + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
+									+ "\",\"url\":\"" + filePath + "\"}"));
 							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
 						}
 					}

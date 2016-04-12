@@ -33,7 +33,7 @@
 			<fileset refid="dependencies" />
 		</path>
 		
-    	<javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}" source="1.6" target="1.6" debug="on" deprecation="on" debuglevel="lines,vars,source">
+    	<javac includeantruntime="false" srcdir="${src.dir}" destdir="${classes.dir}" debug="on" deprecation="on" debuglevel="lines,vars,source">
 			<classpath refid="classpath"/>
 		</javac>
 	</target>

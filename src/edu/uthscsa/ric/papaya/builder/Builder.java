@@ -94,7 +94,6 @@ public class Builder {
 	public static final String SAMPLE_IMAGE_NII_FILE = "tests/data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "tests/data/Talairach.xml";
 	public static final String PAPAYA_LOADABLE_IMAGES = "papayaLoadableImages";
-	public static final String PAPAYA_LOADABLE_SURFACES = "papayaLoadableSurfaces";
 	public static final String DEFAULT_PARAMS = "var params = [];";
 
 

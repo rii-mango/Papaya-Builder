@@ -287,13 +287,13 @@ public class Builder {
 
 						if (builder.isLocal()) {
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"surface\":true,\"encode\":\"" + filename + "\"}"));
+									+ filename + "\",\"encode\":\"" + filename + "\"}"));
 							final String sampleEncoded = Utilities.encodeImageFile(file);
 							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
 							final String filePath = "data/" + file.getName();
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"surface\":true,\"url\":\"" + filePath + "\"}"));
+									+ filename + "\",\"url\":\"" + filePath + "\"}"));
 							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
 						}
 					}
@@ -313,13 +313,13 @@ public class Builder {
 
 						if (builder.isLocal()) {
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"encode\":\"" + filename + "\"}"));
+									+ filename + "\",\"surface\":true,\"encode\":\"" + filename + "\"}"));
 							final String sampleEncoded = Utilities.encodeImageFile(file);
 							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
 							final String filePath = "data/" + file.getName();
 							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"url\":\"" + filePath + "\"}"));
+									+ filename + "\",\"surface\":true,\"url\":\"" + filePath + "\"}"));
 							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
 						}
 					}

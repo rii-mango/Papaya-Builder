@@ -44,9 +44,9 @@ public class Builder {
 	private boolean useParamFile;
 	private boolean useTitle;
 	private boolean useFootnote;
+	private boolean skipIncrement;
 	private Options options;
 	private File projectDir;
-	private String buildVersion;
 	private int buildNumber;
 
 	public static final String ARG_SAMPLE = "sample";
@@ -62,12 +62,12 @@ public class Builder {
 	public static final String ARG_PARAM_FILE = "parameterfile";
 	public static final String ARG_TITLE = "title";
 	public static final String ARG_FOOTNOTE = "footnote";
+	public static final String ARG_SKIP_INCREMENT = "noincrement";
 	public static final String CLI_PROGRAM_NAME = "papaya-builder";
 	public static final String OUTPUT_DIR = "build";
 	public static final String OUTPUT_JS_FILENAME = "papaya.js";
 	public static final String OUTPUT_CSS_FILENAME = "papaya.css";
 	public static final String BUILD_PROP_FILE = "build.properties";
-	public static final String BUILD_PROP_PAPAYA_VERSION_ID = "PAPAYA_VERSION_ID";
 	public static final String BUILD_PROP_PAPAYA_BUILD_NUM = "PAPAYA_BUILD_NUM";
 	public static final String CSS_BLOCK = "<!-- CSS GOES HERE -->";
 	public static final String JS_BLOCK = "<!-- JS GOES HERE -->";
@@ -116,6 +116,7 @@ public class Builder {
 		builder.setUseParamFile(cli.hasOption(ARG_PARAM_FILE));
 		builder.setUseTitle(cli.hasOption(ARG_TITLE));
 		builder.setUseFootnote(cli.hasOption(ARG_FOOTNOTE));
+		builder.setSkipIncrement(cli.hasOption(ARG_SKIP_INCREMENT));
 
 		// print help, if necessary
 		if (builder.isPrintHelp()) {
@@ -157,7 +158,10 @@ public class Builder {
 			final File buildFile = new File(builder.projectDir + "/" + BUILD_PROP_FILE);
 
 			builder.readBuildProperties(buildFile);
-			builder.buildNumber++; // increment build number
+
+			if (!builder.isSkipIncrement()) {
+				builder.buildNumber++; // increment build number
+			}
 			builder.writeBuildProperties(compressedFileJs, true);
 			builder.writeBuildProperties(buildFile, false);
 		} catch (final IOException ex) {
@@ -389,6 +393,7 @@ public class Builder {
 		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
 		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a title").create(ARG_TITLE));
 		options.addOption(OptionBuilder.withArgName("text").hasArg().withDescription("add a footnote").create(ARG_FOOTNOTE));
+		options.addOption(new Option(ARG_SKIP_INCREMENT, "do not increment build number"));
 
 		final CommandLineParser parser = new BasicParser();
 		CommandLine line = null;
@@ -557,7 +562,7 @@ public class Builder {
 		if (cssBlock != null) {
 			css = "<style type=\"text/css\">\n" + cssBlock + "\n</style>\n";
 		} else {
-			css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + "papaya.css?version=" + buildVersion + "&build=" + buildNumber + "\" />";
+			css = "<link rel=\"stylesheet\" type=\"text/css\" href=\"" + "papaya.css?build=" + buildNumber + "\" />";
 		}
 
 		return html.replace(CSS_BLOCK, css);
@@ -575,7 +580,7 @@ public class Builder {
 		if (jsBlock != null) {
 			js += "<script type=\"text/javascript\">\n" + jsBlock + "\n</script>\n";
 		} else {
-			js += "<script type=\"text/javascript\" src=\"" + "papaya.js?version=" + buildVersion + "&build=" + buildNumber + "\"></script>";
+			js += "<script type=\"text/javascript\" src=\"" + "papaya.js?build=" + buildNumber + "\"></script>";
 		}
 
 		return html.replace(JS_BLOCK, js);
@@ -640,8 +645,7 @@ public class Builder {
 
 
 	private void writeBuildProperties(final File file, final boolean append) throws IOException {
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_VERSION_ID + "=\"" + buildVersion + "\";\n", "UTF-8", append);
-		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + buildNumber + "\";\n", "UTF-8", true);
+		FileUtils.writeStringToFile(file, BUILD_PROP_PAPAYA_BUILD_NUM + "=\"" + buildNumber + "\";\n", "UTF-8", append);
 	}
 
 
@@ -720,9 +724,7 @@ public class Builder {
 
 		while (it.hasNext()) {
 			final String line = it.next();
-			if (line.indexOf(BUILD_PROP_PAPAYA_VERSION_ID) != -1) {
-				buildVersion = Utilities.findQuotedString(line);
-			} else if (line.indexOf(BUILD_PROP_PAPAYA_BUILD_NUM) != -1) {
+			if (line.indexOf(BUILD_PROP_PAPAYA_BUILD_NUM) != -1) {
 				buildNumber = Integer.parseInt(Utilities.findQuotedString(line));
 			}
 		}
@@ -810,5 +812,17 @@ public class Builder {
 
 	public void setUseSurface(final boolean useSurface) {
 		this.useSurface = useSurface;
+	}
+
+
+
+	public boolean isSkipIncrement() {
+		return skipIncrement;
+	}
+
+
+
+	public void setSkipIncrement(final boolean skipIncrement) {
+		this.skipIncrement = skipIncrement;
 	}
 }

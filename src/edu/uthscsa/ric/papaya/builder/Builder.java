@@ -39,6 +39,7 @@ public class Builder {
 	private boolean isLocal;
 	private boolean printHelp;
 	private boolean useImages;
+	private boolean useSurface;
 	private boolean singleFile;
 	private boolean useParamFile;
 	private boolean useTitle;
@@ -54,6 +55,7 @@ public class Builder {
 	public static final String ARG_ROOT = "root";
 	public static final String ARG_ATLAS = "atlas";
 	public static final String ARG_IMAGE = "images";
+	public static final String ARG_SURFACE = "surfaces";
 	public static final String ARG_SKIP_JQUERY = "nojquery";
 	public static final String ARG_SKIP_DICOM = "nodicom";
 	public static final String ARG_SINGLE = "singlefile";
@@ -92,6 +94,7 @@ public class Builder {
 	public static final String SAMPLE_IMAGE_NII_FILE = "tests/data/sample_image.nii.gz";
 	public static final String SAMPLE_DEFAULT_ATLAS_FILE = "tests/data/Talairach.xml";
 	public static final String PAPAYA_LOADABLE_IMAGES = "papayaLoadableImages";
+	public static final String PAPAYA_LOADABLE_SURFACES = "papayaLoadableSurfaces";
 	public static final String DEFAULT_PARAMS = "var params = [];";
 
 
@@ -108,6 +111,7 @@ public class Builder {
 		builder.setLocal(cli.hasOption(ARG_LOCAL));
 		builder.setPrintHelp(cli.hasOption(ARG_HELP));
 		builder.setUseImages(cli.hasOption(ARG_IMAGE));
+		builder.setUseSurface(cli.hasOption(ARG_SURFACE));
 		builder.setSingleFile(cli.hasOption(ARG_SINGLE));
 		builder.setUseParamFile(cli.hasOption(ARG_PARAM_FILE));
 		builder.setUseTitle(cli.hasOption(ARG_TITLE));
@@ -256,8 +260,8 @@ public class Builder {
 						final File atlasImageFile = atlas.getImageFile();
 						final String atlasPath = "data/" + atlasImageFile.getName();
 
-						loadableImages.put(new JSONObject(
-								"{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath + "\",\"hide\":true}"));
+						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath
+								+ "\",\"hide\":true}"));
 						FileUtils.copyFile(atlasImageFile, new File(outputDir + "/" + atlasPath));
 					}
 
@@ -279,14 +283,40 @@ public class Builder {
 						final String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
 
 						if (builder.isLocal()) {
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
-									+ "\",\"encode\":\"" + filename + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
+									+ filename + "\",\"surface\":true,\"encode\":\"" + filename + "\"}"));
 							final String sampleEncoded = Utilities.encodeImageFile(file);
 							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
 							final String filePath = "data/" + file.getName();
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
-									+ "\",\"url\":\"" + filePath + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
+									+ filename + "\",\"surface\":true,\"url\":\"" + filePath + "\"}"));
+							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
+						}
+					}
+				}
+			}
+
+			// surfaces
+			if (builder.isUseSurface()) {
+				final String[] imageArgs = cli.getOptionValues(ARG_SURFACE);
+
+				if (imageArgs != null) {
+					for (final String imageArg : imageArgs) {
+						final File file = new File(imageArg);
+						System.out.println("Including surface " + file);
+
+						final String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
+
+						if (builder.isLocal()) {
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
+									+ filename + "\",\"encode\":\"" + filename + "\"}"));
+							final String sampleEncoded = Utilities.encodeImageFile(file);
+							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
+						} else {
+							final String filePath = "data/" + file.getName();
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
+									+ filename + "\",\"url\":\"" + filePath + "\"}"));
 							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
 						}
 					}
@@ -310,7 +340,7 @@ public class Builder {
 			System.out.println("Compressing JavaScript... ");
 			FileUtils.writeStringToFile(compressedFileJs, "\n", "UTF-8", true);
 			builder.compressJavaScript(tempFileJs, compressedFileJs, new YuiCompressorOptions());
-			//tempFileJs.deleteOnExit();
+			tempFileJs.deleteOnExit();
 		} catch (final IOException ex) {
 			System.err.println("Problem concatenating JavaScript.  Reason: " + ex.getMessage());
 		}
@@ -353,6 +383,7 @@ public class Builder {
 		options.addOption(new Option(ARG_SKIP_DICOM, "do not include DICOM support"));
 		options.addOption(new Option(ARG_HELP, "print this message"));
 		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("images to include").create(ARG_IMAGE));
+		options.addOption(OptionBuilder.withArgName("files").hasArgs().withDescription("surfaces to include").create(ARG_SURFACE));
 		options.addOption(OptionBuilder.withArgName("dir").hasArg().withDescription("papaya project directory").create(ARG_ROOT));
 		options.addOption(OptionBuilder.withArgName("file").hasOptionalArg().withDescription("add atlas (default atlas if no arg)").create(ARG_ATLAS));
 		options.addOption(OptionBuilder.withArgName("file").hasArg().withDescription("specify parameters").create(ARG_PARAM_FILE));
@@ -767,5 +798,17 @@ public class Builder {
 
 	public void setUseFootnote(final boolean useFootnote) {
 		this.useFootnote = useFootnote;
+	}
+
+
+
+	public boolean isUseSurface() {
+		return useSurface;
+	}
+
+
+
+	public void setUseSurface(final boolean useSurface) {
+		this.useSurface = useSurface;
 	}
 }

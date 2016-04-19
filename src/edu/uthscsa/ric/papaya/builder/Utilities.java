@@ -16,15 +16,14 @@ import org.apache.commons.io.IOUtils;
 public class Utilities {
 
 	public static void delete(File file) throws IOException {
-
 		if (file.isDirectory()) {
 			if (file.list().length == 0) {
 				file.delete();
 			} else {
-				String files[] = file.list();
+				final String files[] = file.list();
 
-				for (String temp : files) {
-					File fileDelete = new File(file, temp);
+				for (final String temp : files) {
+					final File fileDelete = new File(file, temp);
 					delete(fileDelete);
 				}
 
@@ -40,9 +39,9 @@ public class Utilities {
 
 
 	public static String getResourceAsString(String resourceName) throws IOException {
-		InputStream is = Utilities.class.getResourceAsStream(resourceName);
-		BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
-		StringBuilder sb = new StringBuilder();
+		final InputStream is = Utilities.class.getResourceAsStream(resourceName);
+		final BufferedReader br = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+		final StringBuilder sb = new StringBuilder();
 		String line = null;
 
 		while ((line = br.readLine()) != null) {
@@ -75,24 +74,24 @@ public class Utilities {
 
 
 	public static String encodeImageFile(File imageFile) throws IOException {
-		Base64 base64 = new Base64();
+		final Base64 base64 = new Base64();
 		return new String(base64.encode(FileUtils.readFileToByteArray(imageFile)), "UTF-8");
 	}
 
 
 
 	public static void decodeImageFile(File encodedFile, File outputFile) throws IOException {
-		Base64 base64 = new Base64();
-		FileOutputStream output = new FileOutputStream(outputFile);
-		byte[] data = base64.decode(FileUtils.readFileToByteArray(encodedFile));
+		final Base64 base64 = new Base64();
+		final FileOutputStream output = new FileOutputStream(outputFile);
+		final byte[] data = base64.decode(FileUtils.readFileToByteArray(encodedFile));
 		IOUtils.write(data, output);
 	}
 
 
 
 	public static String findQuotedString(String str) {
-		int firstIndex = str.indexOf("\"");
-		int secondIndex = str.lastIndexOf("\"");
+		final int firstIndex = str.indexOf("\"");
+		final int secondIndex = str.lastIndexOf("\"");
 
 		if ((firstIndex != -1) && (secondIndex != -1) && (firstIndex != secondIndex)) {
 			return str.substring(firstIndex + 1, secondIndex);

@@ -17,6 +17,7 @@ usage: papaya-builder [options]
  -footnote <text>        add a footnote
  -help                   print this message
  -images <files>         images to include
+ -surfaces <files>       surfaces to include
  -local                  build for local usage
  -nodicom                do not include DICOM support
  -nojquery               do not include JQuery library
@@ -36,6 +37,9 @@ Prints the above list of parameters.
 
 ###-images
 Specify one or more image file paths.  These images will appear as File menu options (similar to the sample image).
+
+###-surfaces
+Specify one or more surface file paths.  These surfaces will appear as File menu options.
 
 ###-local
 To build for local usage, include the `-local` flag.  In this case, image data is encoded and embedded within the 

@@ -83,11 +83,12 @@ public class Builder {
 			"src/js/core/coordinate.js", "src/js/core/point.js", "src/js/volume/header.js", "src/js/volume/imagedata.js", "src/js/volume/imagedescription.js",
 			"src/js/volume/imagedimensions.js", "src/js/volume/imagerange.js", "src/js/volume/imagetype.js", "src/js/volume/nifti/header-nifti.js",
 			"src/js/volume/dicom/header-dicom.js", "src/js/volume/orientation.js", "src/js/volume/transform.js", "src/js/volume/volume.js",
-			"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/surface/surface.js", "src/js/ui/dialog.js", "src/js/ui/menu.js",
-			"src/js/ui/menuitem.js", "src/js/ui/menuitemcheckbox.js", "src/js/ui/menuitemradiobutton.js", "src/js/ui/menuitemfilechooser.js",
-			"src/js/ui/menuitemrange.js", "src/js/ui/menuitemslider.js", "src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js",
-			"src/js/viewer/colortable.js", "src/js/viewer/display.js", "src/js/viewer/preferences.js", "src/js/viewer/screenslice.js",
-			"src/js/viewer/screenvol.js", "src/js/viewer/viewer.js", "src/js/viewer/screensurface.js", "src/js/main.js", "src/js/license.js" };
+			"src/js/volume/voxeldimensions.js", "src/js/volume/voxelvalue.js", "src/js/surface/surface.js", "src/js/surface/surface-gifti.js",
+			"src/js/surface/surface-mango.js", "src/js/ui/dialog.js", "src/js/ui/menu.js", "src/js/ui/menuitem.js", "src/js/ui/menuitemcheckbox.js",
+			"src/js/ui/menuitemradiobutton.js", "src/js/ui/menuitemfilechooser.js", "src/js/ui/menuitemrange.js", "src/js/ui/menuitemslider.js",
+			"src/js/ui/menuitemspacer.js", "src/js/ui/toolbar.js", "src/js/viewer/atlas.js", "src/js/viewer/colortable.js", "src/js/viewer/display.js",
+			"src/js/viewer/preferences.js", "src/js/viewer/screenslice.js", "src/js/viewer/screenvol.js", "src/js/viewer/viewer.js",
+			"src/js/viewer/screensurface.js", "src/js/main.js", "src/js/license.js" };
 	public static final String[] CSS_FILES = { "src/css/base.css", "src/css/ui/toolbar.css", "src/css/ui/menu.css", "src/css/ui/dialog.css",
 			"src/css/utilities/nojs.css", "src/css/utilities/unsupported.css", "src/css/viewer/viewer.css" };
 	public static final String RESOURCE_HTML = "index.html";
@@ -263,8 +264,8 @@ public class Builder {
 						final File atlasImageFile = atlas.getImageFile();
 						final String atlasPath = "data/" + atlasImageFile.getName();
 
-						loadableImages.put(new JSONObject("{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath
-								+ "\",\"hide\":true}"));
+						loadableImages.put(new JSONObject(
+								"{\"nicename\":\"Atlas\",\"name\":\"" + atlas.getImageFileNewName() + "\",\"url\":\"" + atlasPath + "\",\"hide\":true}"));
 						FileUtils.copyFile(atlasImageFile, new File(outputDir + "/" + atlasPath));
 					}
 
@@ -286,14 +287,14 @@ public class Builder {
 						final String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
 
 						if (builder.isLocal()) {
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"encode\":\"" + filename + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
+									+ "\",\"encode\":\"" + filename + "\"}"));
 							final String sampleEncoded = Utilities.encodeImageFile(file);
 							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
 							final String filePath = "data/" + file.getName();
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"url\":\"" + filePath + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
+									+ "\",\"url\":\"" + filePath + "\"}"));
 							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
 						}
 					}
@@ -312,14 +313,14 @@ public class Builder {
 						final String filename = Utilities.replaceNonAlphanumericCharacters(Utilities.removeNiftiExtensions(file.getName()));
 
 						if (builder.isLocal()) {
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"surface\":true,\"encode\":\"" + filename + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
+									+ "\",\"surface\":true,\"encode\":\"" + filename + "\"}"));
 							final String sampleEncoded = Utilities.encodeImageFile(file);
 							FileUtils.writeStringToFile(compressedFileJs, "var " + filename + "= \"" + sampleEncoded + "\";\n", "UTF-8", true);
 						} else {
 							final String filePath = "data/" + file.getName();
-							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\""
-									+ filename + "\",\"surface\":true,\"url\":\"" + filePath + "\"}"));
+							loadableImages.put(new JSONObject("{\"nicename\":\"" + Utilities.removeNiftiExtensions(file.getName()) + "\",\"name\":\"" + filename
+									+ "\",\"surface\":true,\"url\":\"" + filePath + "\"}"));
 							FileUtils.copyFile(file, new File(outputDir + "/" + filePath));
 						}
 					}

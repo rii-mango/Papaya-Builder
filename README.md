@@ -28,45 +28,45 @@ usage: papaya-builder [options]
  -title <text>           add a title
 ```
 
-###-atlas
+### -atlas
 Atlas must follow the [FSL Atlas Specification](http://ric.uthscsa.edu/mango/atlas_spec.html).  When building, 
 provide the path to the atlas XML file. To use the default Talairach/MNI label atlas, leave the `<file>` field blank.
 
-###-help
+### -help
 Prints the above list of parameters.
 
-###-images
+### -images
 Specify one or more image file paths.  These images will appear as File menu options (similar to the sample image).
 
-###-surfaces
+### -surfaces
 Specify one or more surface file paths.  These surfaces will appear as File menu options.
 
-###-local
+### -local
 To build for local usage, include the `-local` flag.  In this case, image data is encoded and embedded within the 
 JavaScript.
 
-###-nodicom
+### -nodicom
 Do not include the DICOM ([Daikon](https://github.com/rii-mango/Daikon)) library.
 
-###-nojquery
+### -nojquery
 Do not include the Jquery library.  If your webpage already loads Jquery, you can avoid adding it again to papaya.js. The output index.html will reference the ajax.googleapis.com hosted Jquery as a placeholder.
 
-###-parameterfile
+### -parameterfile
 A file that contains the Papaya config parameters.  The contents of this file will be concatenated to "var params = " in the JavaScript portion of the output HTML header.  See http://rii.uthscsa.edu/mango/papaya_devguide.html for parameter usage.
 
-###-root
+### -root
 Point the builder to the root of the papaya folder.  Omiting this option will use the current working directory.
 
-###-sample
+### -sample
 Use this option to include a sample image.  An _Add Sample Image_ option will appear in the Papaya viewer File menu.
 
-###-singlefile
+### -singlefile
 Outputs a single HTML file: collapses all HTML, CSS, JavaScript, and image data (if local) into one file.
 
-###-title
+### -title
 Adds a title to the viewer.
 
-###-footnote
+### -footnote
 Add a caption below the viewer.
 
 Acknowledgments
